@@ -309,7 +309,12 @@ CREATE TABLE IF NOT EXISTS `system_user` (
   PRIMARY KEY (`Id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
--- Экспортируемые данные не выделены.
+-- Дамп данных таблицы cyxapuk09_repro.system_user: 2 rows
+/*!40000 ALTER TABLE `system_user` DISABLE KEYS */;
+INSERT INTO `system_user` (`Id`, `Login`, `Password`, `Status`, `Superadmin`, `Email`, `MessengerTypeId`, `MessengerContact`, `Notifications`, `Hash`, `Created`) VALUES
+	(1, 'cyxapuk', '2300938', 1, 1, 'cyxapuk.ru@gmail.com', 1, '117045076', 1, '', '2013-02-28 21:31:43'),
+	(2, 'admin', 'gtgtcLA3', 1, 0, 'admin@kokon.ru', 1, '', 0, '', '2013-04-23 09:33:46');
+/*!40000 ALTER TABLE `system_user` ENABLE KEYS */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
