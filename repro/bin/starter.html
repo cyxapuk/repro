@@ -1,0 +1,20 @@
+<?php
+
+/**
+ * 
+ * ���������������� ����
+ * @package Repro Interface
+ *
+**/
+
+error_reporting(E_ALL ^ E_NOTICE);
+header("content-type: text/html; charset=utf-8");
+
+include_once(dirname(__FILE__).'/includer.html');
+
+$Fabrika = new Fabrika;
+
+Fabrika::addTools('controller', array(), 'ReproController');
+$controller = Fabrika::getTools('controller');
+
+?>

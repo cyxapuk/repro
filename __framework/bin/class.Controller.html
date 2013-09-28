@@ -1,0 +1,729 @@
+<?php
+
+/**
+ * Класс контроллера
+ * @package Framework Interface
+**/
+
+class Controller
+{
+    protected $model = false;
+    protected $view = false;    
+    protected $template = false;
+    protected $session = false;
+    protected $user = false;        
+    
+    public function __construct()
+	{
+        
+        Fabrika::addTools('session', array(), 'Session');
+        $this->session = Fabrika::getTools('session');        
+
+        Fabrika::addTools('user', array(), 'User');
+        $this->user = Fabrika::getTools('user');        
+        
+        Fabrika::addTools('model', array(), 'Model');
+        $this->model = Fabrika::getTools('model');
+        
+        Fabrika::addTools('view', array(), 'View');
+        $this->view = Fabrika::getTools('view');
+        
+        $this->user->SetSessionId($this->session->GetSessionId());
+        $this->user->Init();
+        
+    }
+    
+    public function displayPermissions($target="")
+    {        
+        $array = array
+        (            
+            'target' => $target,
+        );         
+        
+        $this->displayThread($array);
+    }
+
+    function displayLogin($target="")
+    {        
+        $bad = $this->clearStr($this->gvar('bad',''));
+        
+        if($this->user->GetUserId() > 0)
+        {
+            $this->Redirect();
+        }
+        
+        if($this->isSometingPost())
+        {
+            if($this->gvar('login') && $this->gvar('password'))
+            {                   
+                 $login = $this->gvar('login');
+                 $password = $this->gvar('password');
+                 
+                 if($this->user->Login($login,$password,true))
+                 {
+                    $this->Redirect();    
+                 }
+                 
+                 $errors = $this->GetErrors(array('Access')); 
+                 
+                 $array = array(
+                    'login' => $login,
+                    'password' => $password
+                 );
+                 
+                 $this->InsertLog($array, $errors);                                    
+            }
+            else
+            {
+                $errors = $this->GetErrors(array('Request'));                
+            }
+        }
+        
+        if(!empty($bad))
+        {
+            $errors = $this->GetErrors(array('Request'));
+        }          
+        
+        $array = array
+        (
+            'target' => $target,
+            'errors' => $errors,
+            'POST' => $_POST,
+            'post_event' => $this->isSometingPost()
+        );  
+        
+        $this->displayThread($array);
+              
+    }
+    
+    function displayUser($target="")
+    {
+        $_user_id    = $this->clearDigit( $this->gvar('_user_id') );
+        
+        $FilterStatus    = $this->clearDigit($this->gvar('FilterStatus', 0));
+        $FilterLike    = $this->clearStr($this->gvar('FilterLike'));
+        
+        if(!empty($_user_id))
+        {
+            if(empty($errors))
+            {
+                $array = array(
+                    'Status'=>0,
+                );                
+                
+                $this->model->Update($array,MYSQL_PROJECT . ".system_user"," where Id=".$_user_id);
+                $this->Redirect(SELF);                
+            }
+        }
+            
+        $array = array
+        (
+            'userlist' => $this->model->GetUserList($FilterStatus, $FilterLike),
+            'target' => $target,
+            'errors' => $errors,
+            'POST' => $_POST,
+            'post_event' => $this->isSometingPost()            
+        );  
+        
+        $this->displayThread($array);
+        
+    }    
+    
+    
+    function displayUserInfo($target="")
+    {
+        $user_id = $this->user->getUserId();        
+        
+        if($this->isSometingPost())
+        {            
+            if(empty($errors))
+            {
+                $array = array(
+                    'Email'=>$this->clearStr($this->gvar('Email')),
+                    'MessengerTypeId'=>$this->clearDigit($this->gvar('MessengerTypeId')),
+                    'MessengerContact'=>$this->clearStr($this->gvar('MessengerContact')),
+                    'Paxum'=>$this->clearStr($this->gvar('Paxum')),
+                    'Minimal_pay'=>$this->clearDigit($this->gvar('Minimal_pay')),
+                    'Notifications'=>$this->clearDigit($this->gvar('Notifications'))
+                );
+                
+                if(!get_valid_email($array['Email']))
+                {
+                    $errors["Email" . "_error"] = true;
+                }
+
+                if($Password = $this->gvar('Password'))
+                {
+                    $Password_retype = $this->clearStr($this->gvar('Password_retype'));
+                    
+                    if($Password != $Password_retype)
+                    {
+                        $errors["Password" . "_error"] = true;
+                        $errors["Password_retype" . "_error"] = true;
+                    }
+                    else
+                    {
+                        $array['Password'] = $Password;
+                    }
+                }
+                
+                if(empty($errors))
+                {                    
+                    $this->model->Update($array,MYSQL_PROJECT . ".system_user"," where Id=".$user_id);
+                    
+                    if($this->gvar('b1') && empty($errors))
+                    {
+                        $this->Redirect('userinfo.php');
+                    }
+                    
+                }
+            }
+
+        }
+        
+        
+        $array = array
+        (
+            'user_id' => $user_id,
+            'user' => $this->model->GetUser($user_id),
+            'target' => $target,
+            'errors' => $errors,
+            'POST' => $_POST,
+            'post_event' => $this->isSometingPost()
+        );
+        
+        $this->displayThread($array);        
+        
+    }    
+    
+    function displayRegistrationSuccess($target="")
+    {
+        $array = array
+        (
+            'target' => $target,
+        );
+        
+        $this->displayThread($array);        
+    }
+    
+    function displayRegistration($target="")
+    {
+        if($this->isSometingPost())
+        {   
+            $array = array(
+                'Login'=>$this->clearStr($this->gvar('Login')),
+                'Email'=>$this->clearStr($this->gvar('Email')),
+                'Status'=>0,
+                'MessengerTypeId'=>$this->clearDigit($this->gvar('MessengerTypeId')),
+                'MessengerContact'=>$this->clearStr($this->gvar('MessengerContact')),
+                'Hash'=>$this->clearStr($this->gvar('Hash')),
+            );            
+            
+            $errors = $this->GetErrors(array('Login','Email','Password','Password_retype'));
+            
+            if(!get_valid_email($array['Email']))
+            {
+                $errors["Email" . "_error"] = true;
+            }
+
+            if(empty($errors))
+            {
+                if($Password = $this->gvar('Password'))
+                {
+                    $Password_retype = $this->clearStr($this->gvar('Password_retype'));
+                    
+                    if($Password != $Password_retype)
+                    {
+                        $errors["Password" . "_error"] = true;
+                        $errors["Password_retype" . "_error"] = true;
+                    }
+                    else
+                    {
+                        $array['Password'] = $Password;
+                    }
+                }
+                
+                if(empty($errors))
+                {
+                    if($this->model->IsExists(MYSQL_PROJECT . ".system_user"," WHERE Login='" . $array['Login'] . "'"))
+                    {
+                        $errors["Login" . "_error"] = true;
+                        
+                        $this->InsertLog($array, $errors);
+                    }
+                    else
+                    {
+                        $user_id = $this->model->Insert($array,MYSQL_PROJECT . ".system_user");
+                        
+                        if(!empty($user_id))
+                        {
+                            $this->Redirect('registration.php?success=ok');
+                        }                        
+                    }
+                }
+
+            }
+
+        }
+        
+        
+        $array = array
+        (
+            'user_id' => $user_id,
+            'target' => $target,
+            'errors' => $errors,
+            'POST' => $_POST,
+            'post_event' => $this->isSometingPost()
+        );  
+        
+        $this->displayThread($array);        
+        
+    }    
+    
+    
+    function displayUserForm($target="")
+    {
+        $user_id    = $this->clearDigit($this->gvar('user_id'));
+        
+        if($this->isSometingPost())
+        {            
+            if($this->gvar('b2'))
+            {
+                $this->Redirect('user.php');
+            }            
+            
+            $errors = $this->GetErrors(array('Login'));
+            
+            if(empty($errors))
+            {
+                $array = array(
+                    'Login'=>$this->clearStr($this->gvar('Login')),
+                    'Status'=>$this->clearStr($this->gvar('Status')),
+                    'Email'=>$this->clearStr($this->gvar('Email')),
+                    'MessengerTypeId'=>$this->clearDigit($this->gvar('MessengerTypeId')),
+                    'MessengerContact'=>$this->clearStr($this->gvar('MessengerContact')),
+                    'Paxum'=>$this->clearStr($this->gvar('Paxum')),
+                    'Minimal_pay'=>$this->clearDigit($this->gvar('Minimal_pay')),
+                    'Notifications'=>$this->clearDigit($this->gvar('Notifications'))
+                );
+                
+                if($Password = $this->gvar('Password'))
+                {
+                    $Password_retype = $this->clearStr($this->gvar('Password_retype'));
+                    
+                    if($Password != $Password_retype)
+                    {
+                        $errors["Password" . "_error"] = true;
+                        $errors["Password_retype" . "_error"] = true;
+                    }
+                    else
+                    {
+                        $array['Password'] = $Password;
+                    }
+                }
+                
+                if(empty($errors))
+                {
+                    if($this->model->IsExists(MYSQL_PROJECT . ".system_user"," WHERE Id=" . $user_id))
+                    {
+                        
+                        if(!$this->model->IsExists(MYSQL_PROJECT . ".system_user"," WHERE Login = '" . $array['Login'] . "' AND Id != '" . $user_id . "'"))
+                        {
+                            $this->model->Update($array,MYSQL_PROJECT . ".system_user"," where Id=".$user_id);    
+                        }
+                        else
+                        {
+                            $errors["Login" . "_error"] = true;   
+                        }
+                    }
+                    else
+                    {
+                        if(!$this->model->IsExists(MYSQL_PROJECT . ".system_user"," WHERE Login = '" . $array['Login'] . "'"))
+                        {
+                            $user_id = $this->model->Insert($array,MYSQL_PROJECT . ".system_user");    
+                        }
+                        else
+                        {
+                            $errors["Login" . "_error"] = true;   
+                        }                                        
+                    }
+                    
+                    if($this->gvar('b1') && empty($errors))
+                    {
+                        $this->Redirect('user.php');
+                    }
+                    
+                    if($this->gvar('b3') && empty($errors))
+                    {
+                        $this->Redirect('user_form.php?user_id=' . $user_id);
+                    }                    
+                }
+
+            }
+
+        }
+        
+        
+        $array = array
+        (
+            'user_id' => $user_id,
+            'user' => $this->model->GetUser($user_id),
+            'target' => $target,
+            'errors' => $errors,
+            'POST' => $_POST,
+            'post_event' => $this->isSometingPost()
+        );  
+        
+        $this->displayThread($array);        
+        
+    }   
+    
+
+    protected function displayThread($array = array())
+    {        
+        $array['auth_user'] = $this->model->GetUserById($this->user->GetUserId());
+        $array['auth_user_login'] = $this->user->GetUserLogin();
+        $array['auth_user_hash'] = md5($array['auth_user_login']);        
+        $array['session_id'] = $this->model->GetSessionById($this->session->GetSessionId());
+        
+        $this->view->displayIndex($array);        
+    }
+    
+    function get1dFrom2d($array = array())
+    {
+        $temp = array();
+        
+        if(!empty($array))
+        {
+            foreach($array as $k=>$v)
+            {
+                if(is_array($v))
+                {
+                    foreach($v as $_k=>$_v)
+                    {
+                        $temp[$k] = $_v;
+                    }
+                }
+            }
+        }
+        
+        return $temp;
+    }
+    
+
+    function getList2d($array=array(), $index = "Id", $value = "Name")
+    {
+        $temp = array();
+        
+        if(!empty($array))
+        {
+            foreach($array as $a)
+            {
+                $temp[$a[$index]] = $a[$value];
+            }
+        }
+        
+        return $temp;
+    } 
+    
+    function getLists2d($array=array(), $index = "Id", $value = "Name", $list_index=null)
+    {
+        $temp = array();
+        
+        if(!empty($array))
+        {
+            foreach($array as $a)
+            {
+                if(isset($list_index))
+                {
+                    $temp[$a[$index]][$list_index] = $a[$value];
+                }
+                else
+                {
+                    $temp[$a[$index]][] = $a[$value];   
+                }                
+            }
+        }
+        
+        return $temp;
+    }    
+    
+    function getList2dFrom3d($array=array())
+    {
+        $temp = array();
+        
+        if(!empty($array))
+        {
+            foreach($array as $key=>$_array)
+            {
+                if(is_array($_array))
+                {
+                    foreach($_array as $_k=>$_v)
+                    {
+                        $temp[$key] = $_v;
+                    }
+                }
+            }
+        }
+        
+        return $temp;
+    }       
+    
+    
+    public function getListReplaceIndex($array = array(), $index = false)
+    {
+        if(empty($array) || empty($index))
+        {
+            return $array;
+        }
+        
+        $temp = array();
+        
+        foreach($array as $a)
+        {
+            $temp[$a[$index]] = $a;
+        }
+        
+        return $temp;
+    }
+    
+    
+    protected function GetErrors($array = array(), $Errors = array())
+    {
+        foreach($array as $value)
+        {
+            $val = $this->gvar($value);
+            
+            if( (is_int($val) && $val <=0) || (!$val) )
+            {
+                $Errors[$value . "_error"] = true;
+            }
+        }
+        
+        return $Errors;
+    }    
+    
+    function InsertLog($array = array(), $errors =array())
+    {
+        $log = array(
+            'Data' => serialize($array),
+            'Errors' => serialize($errors),
+            'Ip' => $_SERVER['REMOTE_ADDR']
+        );
+        
+        $this->model->Insert($log,MYSQL_PROJECT . ".system_log");        
+    }
+
+    /* USER */
+    
+    public function isAuthorized()
+    {
+        if($this->user->GetUserId() == 0)
+        {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    public function landingPage()
+    {
+        if($this->user->GetUserId() == 0)
+        {
+            $this->Redirect('landing.php');
+        }        
+    }    
+    
+    public function isLogin($params = "")
+    {
+        if($this->user->GetUserId() == 0)
+        {
+            $this->Redirect('login.php' . $params);
+        }        
+    }
+    
+    public function isSuperadmin($return = false)
+    {
+        $this->isLogin();
+        
+        if($this->user->GetSuperadmin() == 0)
+        {
+            if(!empty($return))
+            {
+                return false;   
+            }
+            
+            $this->Redirect('permissions.php');       
+        }   
+        
+        return true;
+    }    
+    
+    public function LogOut()
+    {
+        $this->user->LogOut();
+        $this->session->Destroy();
+        $this->Redirect();
+    }    
+    
+    public function UserIsAuth()
+    {
+        $user_id = $this->user->GetUserId();
+        return !empty($user_id)?true:false;
+    }
+    
+    public function UserInfo()
+    {
+        return $this->user;
+    }    
+
+
+    /* General */
+    
+    public function gvar($varname,$def=null,$src=null)
+    {
+    	if(is_null($src)) $src=&$_REQUEST;
+    	$ret=isset($src[$varname])?$src[$varname]:$def;
+    	return $ret;
+    }    
+    
+    
+    public function clearStr($str="",$notrim=false)
+    {
+        if(empty($notrim))
+        {
+            $str = trim($str);   
+        }        
+        $str = strip_tags($str);
+
+		if ( get_magic_quotes_gpc() )
+        {
+            $str = htmlspecialchars( stripslashes((string)$str) );
+        }
+        else
+        {
+            $str = htmlspecialchars( (string)$str );                        
+        }
+            
+        return $str;
+    }
+    
+    public function clearStrArray($array=array())
+    {
+        if(empty($array))   return $array;
+        
+        foreach($array as $k=>$v)
+        {
+            $array[$k] = $this->clearStr($v);
+        }
+        
+        return $array;
+    }
+    
+    public function clearDigit($digit="")
+    {
+        return intval($digit);
+    }
+    
+    public function clearDigitFloat($digit=0)
+    {
+        return floatval($digit);
+    }    
+    
+    public function clearDigitArray($array=array())
+    {
+        if(empty($array))   return $array;
+        
+        foreach($array as $key=>$value)
+        {
+            if(is_array($value))
+            {
+                foreach($value as $k => $v)
+                {
+                    $array[$key][$k] = $this->clearDigit($v);
+                }
+            }
+            else
+            {
+                $array[$k] = $this->clearDigit($value);                
+            }            
+        }
+        
+        return $array;
+    }
+        
+    protected function isSometingPost($varname="",$check=false)
+    {
+        if(METHOD == 'POST')    
+        {   
+            if(!empty($varname))
+            {
+                if($this->session->ExistsVar($this->gvar($varname)) && $check)
+                {
+                    $this->view->displayError($this->template,'dublicate_request');
+                    return false;     
+                }             
+                $this->session->SaveVar($varname.'_'.time(),$this->gvar($varname));                
+            }
+            return true;   
+        }
+        
+        return false;    
+    }      
+    
+    public function Redirect($location="")
+    {
+        if(!empty($location))
+        {
+            if(strlen(SITE_URL_PATH)>1)
+            {
+                $location = str_replace(substr(SITE_URL_PATH,1),"",$location);
+            }
+            
+            Header("Location: ".SITE_URL.$location);
+        }
+        else
+        {
+            Header("Location: ".SITE_URL);
+        }
+        exit;
+    }      
+        
+
+    public function GetDebug($tofile=false)
+    {
+        if($tofile)
+        {
+            ob_start();
+            debug_array($this->model->GetDebug());
+            $debug = ob_get_contents();
+            ob_end_clean();
+            
+            $fp = fopen(DEBUG_PATH.time().'.txt','a+');
+            fputs($fp,$debug);
+            fclose($fp);
+                        
+        }
+        else
+        {
+            debug_array($this->model->GetDebug());            
+        }
+    } 
+
+    function __destruct()
+    {
+        Fabrika::delTools('session');
+        Fabrika::delTools('user');        
+        Fabrika::delTools('model');
+        Fabrika::delTools('view');
+        Fabrika::delTools('controller');
+    }
+    
+    
+}
+
+
+
+
+
+?>

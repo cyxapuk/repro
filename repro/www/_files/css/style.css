@@ -1,0 +1,745 @@
+/*
+	// основные цвета
+		#b61c1c - "active"
+		#1a1818 - "серый" - бэкграунд
+		#247acb - "синий" - link
+		#6f1010 - active2
+		#d70d0d - hover2
+		#891515 - bg-header
+		#b8b8b8 - gray-link
+	
+	// - цвета кнопок
+		#094b89 - active
+		#247acb - hover
+		
+	Шрифты:
+		Georgia
+		Tahoma
+		Arial
+*/
+
+
+* {	padding:0; margin:0; outline:0; line-height:110%; -webkit-margin-before:0;-webkit-margin-after:0;}
+
+html { height:100%; }
+
+body {
+	background:#1a1818;
+	font-size:12px;
+	color:#000;
+	font-family:Tahoma, Arial, sans-serif;
+}
+
+p {margin:0.5em 0em; line-height:125%}
+hr {
+	margin:0.5em 0em;
+	border:0;
+	border-top:1px solid #c00;
+	border-bottom:1px solid #fff;
+}
+
+h1, h2, h3, h4 {
+	font-weight:normal;
+	color:#c00;
+	line-height:30px;
+}
+
+h1 {font-size:192%;}
+h2 {font-size:169%;}
+h3 {font-size:146%;}
+h4 {font-size:123%;}
+
+
+a {color:#247acb;}
+a:hover {color:#b61c1c;text-decoration:none;}
+a:active {text-decoration:underline;}
+a img {border:0;}
+
+input[type*=submit],input[type*=button] {
+	cursor:pointer;
+}
+
+.clearfix {
+	float: none;
+	clear: both;
+}
+
+.wrapper {
+	min-width:972px;
+	margin:0 auto;
+	position:relative;
+	max-width:1460px;
+	width:98%;
+}
+
+.ckeditor
+{
+    width:65.6% !important;
+    float:right !important;
+}
+
+.additional
+{
+   clear:both;
+   width:65.6%;
+   float:right;
+   margin:10px 0 10px 0;
+}
+
+.right-float
+{
+    float:right !important;
+}
+
+header {
+	position:relative;
+	height:200px;
+	min-width:972px;
+	background:#353131;	
+	border-bottom:1px solid #444;
+}
+	
+	header .wrapper {
+		height:120px;
+	}
+	
+    header a.logo {
+    	position:absolute;
+    	display:block;
+    	width:350px;
+    	height:81px;
+    	top:27px;
+        left:0px;
+    	font-size:15px;
+    	text-decoration:none;
+    	line-height:20px;
+    	color:#eee;
+    	/*background:url('../img/logo-l.png') no-repeat;*/
+    }
+	
+	header.login .logo {
+		left:50%;
+		margin-left:-150px;
+		top:100%;
+	}
+
+nav {
+	position:absolute;
+	left:0px;
+	top:110px;	
+	height:90px;
+	background:#353131;
+	width:100%;
+	z-index:10;
+}
+
+	nav .wrapper {
+		background:#353131;
+		height:90px;
+	}
+
+	nav .tabs {
+		position:absolute;
+		top:10px;
+		left:0px;
+		height:40px;
+	}
+	
+		nav .tabs a {
+			position:relative;
+			float:left;
+			height:24px;
+			padding:5px 30px;
+			padding-toP:11px;
+			border-top-left-radius:10px;
+			border-top-right-radius:10px;
+			background:#cfcdcd repeat-x 0px -80px url('../img/sprites-bg.png');
+			margin-right:10px;
+			font-size:18px;
+			text-decoration:none;
+			box-shadow:0px 0px 4px 0px rgba(0,0,0,0.75), 0px 0px 15px 0px rgba(0,0,0,0.4) inset;
+		}
+		
+			nav .tabs a:hover {
+				height:21px;
+				border-bottom:3px solid #900;
+				background:#e3e1e1 repeat-x 0px -40px url('../img/sprites-bg.png');
+				box-shadow:0px 0px 10px 0px rgba(255,255,255,0.15);
+			}
+			
+			nav .tabs a:active, nav .tabs a.active{
+				height:21px;
+				border-bottom:3px solid #c00;
+				color:#c00;
+				background:#efeded repeat-x 0px -00px url('../img/sprites-bg.png');
+				box-shadow:0px 0px 10px 0px rgba(255,255,255,0.3), 0px 0px 15px 0px rgba(255,255,255,0.75) inset;
+			}
+	
+	nav .submenu {
+		position:relative;
+		height:40px;
+		background:#efeded;
+		top:50px;
+		border-top-right-radius:10px;
+		padding:0px 5px;
+		border-bottom:1px solid #fff;
+		box-shadow:0px 1px 5px 0px rgba(0,0,0,0.15);
+	}
+	
+		nav .submenu a{
+			position:relative;
+			float:left;
+			top:5px;
+			height:16px;
+			padding:7px 15px;
+			font-size:14px;
+			text-decoration:none;
+			border-right:1px solid #ddd;
+		}
+		
+		nav .submenu a:last-child {
+			border:0;
+		}
+		
+			nav .submenu a:hover{
+				color:#fff;
+				background:#900;
+			}
+			
+			nav .submenu a:active, nav .submenu a.active{
+				color:#fff;
+				background: #cc0000 repeat-x 0px -120px url('../img/sprites-bg.png');
+			}
+footer {
+	color:#fff;
+}
+	footer .txt {
+		padding:10px;
+	}
+	
+	footer .nav {
+		float:right;
+	}
+			
+			
+section {	
+	position:relative;
+}
+
+	section .layout {
+		border-bottom-left-radius:10px;
+		border-bottom-right-radius:10px;
+		background:#efeded;
+		min-height:200px;
+		box-shadow:0px 1px 5px 0px rgba(0,0,0,0.75);
+		padding:10px;
+	}
+		
+		section .layout .add-block {
+			position:relative;
+			float:right;
+			width:300px;
+            padding-left:10px; /* cyxapuk */
+		}
+        
+        /*cyxapuk*/
+        section .layout .add-block p span
+        {
+            display:block;
+            float: right;
+        }        
+		
+		section .layout .main {
+			position:relative;
+			/*margin-right:310px;*/
+		}
+		
+		section .layout table {
+			width:100%;
+		}
+		
+		section .layout table td {
+			padding:10px;
+			position:relative;			
+			text-align:center;
+		}
+		
+		section .layout table tr.f td{
+			background:#fff;
+		}
+		
+		section .layout table tr td:first-child {
+			border-top-left-radius:10px;
+			border-bottom-left-radius:10px;
+		}
+		
+		section .layout table tr td:last-child {
+			border-top-right-radius:10px;
+			border-bottom-right-radius:10px;
+		}
+
+		
+		section .layout table thead td {
+			color:#fff;
+			text-align:center;
+			padding:10px 5px;
+			font-size:14px;
+			box-shadow:0px 2px 4px 0px rgba(0,0,0,0.3);
+			background: #cc0000 repeat-x 0px -120px url('../img/sprites-bg.png');
+
+		}
+		
+		section .layout table thead td:first-child {
+			border-top-left-radius:10px;
+			border-bottom-left-radius:10px;
+		}
+		
+		section .layout table thead td:last-child {
+			border-top-right-radius:10px;
+			border-bottom-right-radius:10px;
+		}
+
+/* Формы */
+
+fieldset  {
+	padding:10px;
+	margin-top:10px;
+	border-radius:10px;
+	border:1px solid #ccc; 
+}
+
+fieldset .clearfix {
+	height:10px;
+}
+
+fieldset label {
+	width:32%;
+	float:left;
+	display:block;
+	padding-top:6px;
+	font-size:14px;
+	text-align:right;
+}
+
+fieldset input[type*=text], fieldset input[type*=file], fieldset input[type*=password], fieldset textarea{
+	display:block;
+	float:right;
+	width:65%;
+	padding:5px;
+	background:#f7f7f7;
+	border-radius:5px;
+	border:1px solid #ccc;
+	font-size:14px;
+}
+
+fieldset input[type*=checkbox]
+{
+    display:block;
+    float:left;
+    padding:5px;
+    margin-right:20px;
+    margin-top:5px;
+    width:5%;
+}
+
+fieldset input[type*=text]:focus, fieldset input[type*=password]:focus, fieldset select:focus, fieldset textarea:focus{
+	border:1px solid #c00;
+	background:#fff;
+	box-shadow:0 2px 10px 0px rgba(0,00,0,0.15);
+}
+
+fieldset input[type*=text].error, fieldset input[type*=password].error, fieldset select.error, fieldset textarea.error{
+	border:1px solid #c00;
+	background:#fff;
+	box-shadow:0 2px 10px 0px rgba(0,00,0,0.15);
+}
+
+fieldset textarea{
+	height:100px;
+	font-family:Tahoma;
+}
+
+fieldset .select, fieldset .buttons {
+	width:65%;
+	float:right;
+	padding:5px;
+	height:18px;
+	position:relative;
+}
+
+fieldset .buttons {
+	left:-8px;
+	height:auto;
+}
+
+fieldset input[type*=button], fieldset input[type*=submit] {
+	padding:7px 12px;
+	font-size:14px;
+	background:#999;
+	color:white;
+	border:1px solid #ccc;
+	border-radius:5px;
+	box-shadow:0px -2px 10px 0px rgba(0,0,0,0.25) inset;
+}
+
+fieldset input[type*=submit] {
+	background:#900;	
+	border:1px solid #c00;
+	float:right;
+	margin-right:-13px;
+    margin-left:15px;
+}
+
+fieldset input[type*=button]:hover, fieldset input[type*=submit]:hover {
+	box-shadow:0px 2px 10px 0px rgba(0,0,0,0.75);
+	border:1px solid #666;
+}
+
+fieldset input[type*=submit]:hover {
+	border:1px solid #600;
+}
+
+fieldset input[type*=button]:active, fieldset input[type*=submit]:active {
+	box-shadow:0px 2px 5px 0px rgba(0,0,0,0.35);
+}
+
+fieldset select {
+	position:absolute;
+	top:0px;
+	left:-2px;
+	display:block;
+	padding:5px;
+	background:#f7f7f7;
+	border-radius:5px;
+	border:1px solid #ccc;
+	font-size:14px;
+}
+
+.login_form {
+	position:absolute;
+	width:300px;
+	top:10px;
+	border-radius:20px;
+	left:50%;
+	margin-left:-150px;
+	height:208px;
+	background:#eee;
+	box-shadow:0px 2px 5px 0px rgba(0,0,0,0.75);
+}
+
+.login_error{
+	position:absolute;
+	width:300px;
+	top:228px;
+	left:50%;
+	margin-left:-150px;
+	text-align:center;
+	color:red;
+}
+
+.reg_form {
+    position: relative;
+    top: 10px;
+    border-radius: 20px;
+    padding: 10px;
+    background: #EEE;
+    box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.75);
+    width: 960px;
+    margin: 0 auto;
+}
+
+.login_form fieldset {
+	margin:10px;
+}
+
+.reg_form fieldset{
+	margin:0px !important;
+}
+
+.login_form fieldset input[type*="submit"], fieldset input.button[type*="submit"] {	
+	position:absolute;
+	width:80px;
+	left:50%;
+	margin-right:0;
+	margin-left:-40px;	
+}
+
+.login_form fieldset input[type*="text"], .login_form fieldset input[type*="password"], .login_form fieldset textarea {
+	width:160px;
+}
+
+fieldset p {
+	clear:both;
+	margin-bottom:10px;
+	height:30px;
+	line-height:30px;
+}
+
+fieldset .left {
+	float:left !important;
+	margin-left:10px;
+}
+
+fieldset b.left {
+	line-height:30px;
+}
+
+fieldset [type*="radio"] {
+	margin-top:7px;
+}
+
+/* cyxapuk add */
+section .layout table tr.d td{
+	background:#b1f2be;
+}
+
+#ajaxFeed {
+	padding-bottom:20px;
+}
+
+
+#ajaxFeed h3 sup {
+	font-size:10px;
+}
+
+#ajaxFeed  table td {
+	text-align:left;
+	vertical-align:top;
+}
+
+#ajaxFeed .select {
+	border:1px solid #999;
+	width:100%;
+	height:300px;
+	overflow:auto;
+}
+
+#ajaxFeed label {
+	display:block;
+	margin:5px;
+	clear:both;	
+}
+
+#ajaxFeed label:hover {
+	background:#fff;
+}
+
+#ajaxFeed label input[type=checkbox] {
+	margin:10px;
+}
+
+
+#ajaxFeed label select {
+	margin:5px;
+	height:30px;
+	width:163px;
+}
+
+
+#ajaxFeed label span {
+	display:block;
+	width:45%;
+	float:left;
+	line-height:40px;
+	text-align:right;
+	padding-right:10px;
+}
+#ajaxFeed input[type=submit], #ajaxFeed .ctc  {
+	padding:7px 12px;
+	font-size:14px;
+	background:#900;	
+	color:white;
+	border:1px solid #c00;
+	border-radius:5px;
+	box-shadow:0px -2px 10px 0px rgba(0,0,0,0.25) inset;
+}
+
+#ajaxFeed .ctc {
+	background:#090;
+	border:1px solid #0c0;	
+	width:150px;
+	text-align:center;
+	margin:auto;
+	cursor:pointer;
+}
+
+	#ajaxFeed input[type*=submit]:hover {
+		box-shadow:0px 2px 10px 0px rgba(0,0,0,0.75);
+		border:1px solid #600;
+	}
+	#ajaxFeed .ctc:hover, #copy-feedBox.zeroclipboard-is-hover {
+		box-shadow:0px 2px 10px 0px rgba(0,0,0,0.75);
+		border:1px solid #060;
+	}
+
+	#ajaxFeed input[type*=submit]:active, #ajaxFeed .ctc:active, #copy-feedBox.zeroclipboard-is-active {
+		box-shadow:0px 2px 5px 0px rgba(0,0,0,0.35);
+	}
+
+#ajaxFeed label input[type=text] {
+	margin:5px;
+	height:30px;
+	padding:0 5px;
+	width:163px;
+}
+
+#ajaxFeed  .format select{
+	height:30px;
+	margin:5px;
+}
+
+#ajaxFeed textarea {
+	padding:5px;
+    resize: none;
+	height:90px;
+	width:685px;
+	margin:0 auto;
+	margin-top:20px;
+}
+
+
+.faq {
+	font-size:18px;
+}
+
+.faq dl {
+	padding-bottom:20px;
+}
+
+.faq dt, .faq dd {
+	padding-left:2.5em;
+	line-height:150%;
+	position:relative;
+}
+
+.faq dt{
+	padding-top:1em;
+	color:#C00;
+}
+
+.faq dt:before{
+	content:"Q:";
+	font-weight:bold;
+	position:relative;
+	color:#c00;
+	width:2em;
+	text-align:right;
+	display:block;
+	float:left;
+	margin-left:-2.5em;
+}
+.faq dd:before{
+	content:"A:";
+	font-weight:bold;
+	position:relative;
+	color:#c00;
+	width:2em;
+	text-align:right;
+	display:block;
+	float:left;
+	margin-left:-2.5em;
+}
+
+.videos
+{
+    display: none;
+}
+
+/* catalog */
+section .layout table.catalog tr:nth-child(even) {
+    background-color:#FFFFFF;    
+}
+
+section .layout table.catalog .level0
+{
+    text-align:left !important;
+    padding-left: 20px !important;
+}
+
+section .layout table.catalog .level1
+{
+    text-align:left !important;
+    padding-left: 60px !important;
+}
+
+section .layout table.catalog .level2
+{
+    text-align:left !important;
+    padding-left: 100px !important;
+}
+
+section .layout table.catalog .level3
+{
+    text-align:left !important;
+    padding-left: 140px !important;
+}
+
+section .layout table.catalog .level4
+{
+    text-align:left !important;
+    padding-left: 180px !important;
+}
+
+section .layout table.catalog .level5
+{
+    text-align:left !important;
+    padding-left: 220px !important;
+}
+
+section .layout table.catalog .level6
+{
+    text-align:left !important;
+    padding-left: 260px !important;
+}
+
+section .layout table.catalog .level7
+{
+    text-align:left !important;
+    padding-left: 300px !important;
+}
+
+section .layout table.catalog .level8
+{
+    text-align:left !important;
+    padding-left: 340px !important;
+}
+
+section .layout table.catalog .level9
+{
+    text-align:left !important;
+    padding-left: 380px !important;
+}
+
+section .layout table.catalog .level10
+{
+    text-align:left !important;
+    padding-left: 420px !important;
+}
+
+section .layout table .arrow_up
+{
+    width:20px;
+    height:20px;
+    background: url('../img/arrow_up.png') top left no-repeat;
+    display:block;
+    float:left;
+}
+
+section .layout table .arrow_down
+{
+    width:20px;
+    height:20px;
+    background: url('../img/arrow_down.png') top left no-repeat;
+    display:block;
+    float:right;
+}
+
+section .layout table tr:first-child .arrow_up
+{
+    display:none;
+}
+
+section .layout table tr:last-child .arrow_down
+{
+    display:none;
+}

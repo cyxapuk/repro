@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * 
+ * Конфирурационный файл
+ * @package Framework Interface
+ *
+**/
+
+class HTTP {
+	
+	static function GetVar($name,$def='') {
+        $_REQUEST = HTTP::ArgcToRequest();
+        
+		return isset($_REQUEST[$name]) ? $_REQUEST[$name] : $def;
+
+	}
+
+	static function GetInt($name,$def=0) {	
+        $_REQUEST = HTTP::ArgcToRequest();
+        
+		return isset($_REQUEST[$name]) ? (int) $_REQUEST[$name] : $def;
+
+	}
+    
+    static function ArgcToRequest()
+    {
+        global $argc;
+        global $argv;
+        
+        if ($argc > 0)
+        {
+          for ($i=1;$i < $argc;$i++)
+          {
+            parse_str($argv[$i],$tmp);
+            $_REQUEST = array_merge($_REQUEST, $tmp);
+          }
+        }
+        
+        return $_REQUEST;        
+    }
+
+}
+
+?>

@@ -1,0 +1,41 @@
+<?
+
+/**
+ * 
+ *  онфирурационный файл
+ * @package Repro Interface
+ *
+**/
+
+/* константы относительно сайта */
+
+define('SITE_URL_PATH',"/");
+define('SITE_URL',"http://".$_SERVER['HTTP_HOST'].SITE_URL_PATH);
+define('PATH',realpath(dirname(__FILE__)."/../")."/");
+define('BIN_PATH',dirname(dirname(__FILE__))."/bin/");
+define('MODULE_PATH',BIN_PATH."/module/");
+define('WWW_PATH',realpath(PATH."www")."/");
+define('TPL_PATH',PATH."tpl/");
+define('_FILES_PATH',WWW_PATH."_files/");
+define('_FILES_URL',SITE_URL.'_files/');
+define('_LIBS_URL',SITE_URL."_libs/");
+define('IMAGES_PATH',WWW_PATH."images/");
+define('IMAGES_URL',SITE_URL.'images/');
+define('DUMPS_PATH',WWW_PATH."dumps/");
+define('DUMPS_URL',SITE_URL.'dumps/');
+
+/* константы дл€ шаблонизатора SMARTY */
+
+define('SMARTY_DEBUG', false);
+define('SMARTY_CACHING', false);
+define('SMARTY_CACHE_LIFETIME', 120);
+
+/* обобщенные константы */
+
+define('DEBUG',true);
+define('ROOT_PASSWORD','tfmZ4Lun86H7npMC');
+define('METHOD',$_SERVER['REQUEST_METHOD']);
+define('SELF',substr($_SERVER['PHP_SELF'],1));
+define('REQUEST_URI',substr($_SERVER['REQUEST_URI'],1));
+
+?>

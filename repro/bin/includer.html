@@ -1,0 +1,19 @@
+<?php
+
+/* Подключаем глобальный конфиг */
+include_once(dirname(dirname(dirname(__FILE__))) . '/__config/config.html');
+
+/* Админка */
+include_once(dirname(dirname(__FILE__)) . '/config/config.html');
+include_once(BIN_PATH . '/class.ReproController.html');
+include_once(BIN_PATH . '/class.ReproModel.html');
+include_once(BIN_PATH . '/class.ReproView.html');
+
+/* Модули */
+
+/* Каталог */
+include_once(MODULE_PATH . '/catalog/class.CatalogController.html');
+include_once(MODULE_PATH . '/catalog/class.CatalogModel.html');
+include_once(MODULE_PATH . '/catalog/class.CatalogView.html');
+
+?>

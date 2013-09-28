@@ -1,0 +1,1527 @@
+<?php
+
+/**
+ * Класс контроллера модуля "Каталог"
+ * @package Repro Interface
+**/
+
+class CatalogController extends ReproController
+{
+    var $catalog_id = 0;
+    var $category_id = 0;
+    var $category_parent_id = 0;
+    var $object_id = 0;
+    var $propertie_id = 0;
+    var $array_id = 0;
+    var $model = false;
+    var $view = false;
+    var $uploadType = array
+    (
+        'image'=> array('jpg','JPG','jpeg','JPEG','gif','GIF','png','PNG'),
+        'document' => array('txt','doc','pdf')
+    );
+    var $CatalogDir = '';
+    var $CatalogCategoryDir = '';
+    var $CatalogObjectDir = '';
+    
+    static $CatalogCategoryIndex = array();
+    static $CatalogObjectIndex = array();
+    
+        
+    public function __construct()
+    {
+        parent::__construct();
+        
+        $this->catalog_id    = $this->clearDigit( $this->gvar('catalog_id') );
+        $this->category_id    = $this->clearDigit( $this->gvar('category_id') );
+        $this->category_parent_id    = $this->clearDigit( $this->gvar('category_parent_id') );
+        $this->object_id    = $this->clearDigit( $this->gvar('object_id') );
+        $this->propertie_id    = $this->clearDigit( $this->gvar('propertie_id') );
+        $this->array_id    = $this->clearDigit( $this->gvar('array_id') );
+        $this->settings    = $this->clearDigit( $this->gvar('settings') );
+        
+        Fabrika::addTools('modelCatalog', array(), 'CatalogModel');
+        $this->model = Fabrika::getTools('modelCatalog');
+        
+        Fabrika::addTools('viewCatalog', array(), 'CatalogView');
+        $this->view = Fabrika::getTools('viewCatalog');        
+        
+        $this->CatalogDir = PROJECT_PATH_WWW . 'catalog_files' . DIRECTORY_SEPARATOR;
+        $this->CatalogCategoryDir = $this->CatalogDir . 'category' . DIRECTORY_SEPARATOR;
+        $this->CatalogObjectDir = $this->CatalogDir . 'object' . DIRECTORY_SEPARATOR;                
+        
+        $this->__prepare();
+    }
+    
+    protected function __prepare()
+    {
+        if(empty($this->category_parent_id))
+        {
+            $this->category_parent_id = $this->clearDigit($this->model->getCategoryParent($this->catalog_id, $this->category_id));
+        }
+        
+        $this->makeDir($this->CatalogDir);
+        $this->makeDir($this->CatalogCategoryDir);
+        $this->makeDir($this->CatalogObjectDir);
+    }
+
+    public static function addCategoryIndex($catalog_id = 0, $category_id = 0, $propertie_id = 0, $value = null)
+    {
+        if(empty($catalog_id) || empty($category_id) || empty($propertie_id))
+        {
+            return false;
+        }
+        
+        self::$CatalogCategoryIndex[$catalog_id][$category_id][$propertie_id] = $value;
+        
+        return true;
+    }
+    
+    public static function getCategoryIndex($catalog_id = 0, $category_id = 0, $propertie_id = 0)
+    {
+        if(empty($catalog_id) || empty($category_id) || empty($propertie_id))
+        {
+            return false;
+        }
+        
+        if(!empty($this->CatalogCategoryIndex[$catalog_id][$category_id][$propertie_id]))
+        {
+            return self::$CatalogCategoryIndex[$catalog_id][$category_id][$propertie_id];
+        }
+        
+        return false;
+  
+    }
+    
+    public static function unsetCategoryIndex($catalog_id = 0, $category_id = 0, $propertie_id = 0)
+    {
+        if(empty($catalog_id) || empty($category_id) || empty($propertie_id))
+        {
+            return false;
+        }
+        
+        if(!empty($this->CatalogCategoryIndex[$catalog_id][$category_id][$propertie_id]))
+        {
+            unset(self::$CatalogCategoryIndex[$catalog_id][$category_id][$propertie_id]);
+            
+            return true;
+        }
+        
+        return false;
+          
+    }    
+
+
+    public static function addObjectIndex($catalog_id = 0, $object_id = 0, $propertie_id = 0, $value = null)
+    {
+        if(empty($catalog_id) || empty($object_id) || empty($propertie_id))
+        {
+            return false;
+        }
+        
+        self::$CatalogObjectIndex[$catalog_id][$object_id][$propertie_id] = $value;
+        
+        return true;
+    }
+    
+    public static function getObjectIndex($catalog_id = 0, $object_id = 0, $propertie_id = 0)
+    {
+        if(empty($catalog_id) || empty($object_id) || empty($propertie_id))
+        {
+            return false;
+        }
+        
+        if(!empty($this->CatalogObjectIndex[$catalog_id][$object_id][$propertie_id]))
+        {
+            return self::$CatalogObjectIndex[$catalog_id][$object_id][$propertie_id];
+        }
+  
+        return false;
+    }    
+    
+    
+    public static function unsetObjectIndex($catalog_id = 0, $object_id = 0, $propertie_id = 0)
+    {
+        if(empty($catalog_id) || empty($object_id) || empty($propertie_id))
+        {
+            return false;
+        }
+        
+        if(!empty($this->CatalogObjectIndex[$catalog_id][$object_id][$propertie_id]))
+        {
+            unset(self::$CatalogObjectIndex[$catalog_id][$object_id][$propertie_id]);
+            
+            return true;
+        }
+        
+        return false;
+          
+    }
+
+
+    function displayCatalog($target="")
+    {
+        $_catalog_id    = $this->clearDigit( $this->gvar('_catalog_id') );
+        
+        if(!empty($_catalog_id))
+        {
+            if($this->deleteCatalog($_catalog_id))
+            {
+                $this->Redirect('module-catalog.php');
+            }
+        }
+        
+        $array = array
+        (
+            'cataloglist' => $this->model->GetCatalogList(),
+            'target' => $target,
+            'errors' => $errors           
+        );  
+        
+        $this->displayThread($array);
+        
+    }
+    
+    
+    public function displayCatalogForm($target="")
+    {        
+        if($this->isSometingPost())
+        {   
+            $array = array(
+                'catalog_title'=>$this->clearStr($this->gvar('catalog_title')),
+            );            
+            
+            $errors = $this->GetErrors(array('catalog_title'));
+            
+            if(empty($errors))
+            {
+                if($this->model->IsExists(MYSQL_PROJECT . ".module_catalog"," WHERE catalog_id=" . $this->catalog_id))
+                {
+                    $this->model->Update($array,MYSQL_PROJECT . ".module_catalog"," where catalog_id=" . $this->catalog_id);
+                }
+                else
+                {
+                    if(!$this->model->IsExists(MYSQL_PROJECT . ".module_catalog"," WHERE catalog_title = '" . $array['catalog_title'] . "'"))
+                    {
+                        $this->catalog_id = $this->model->Insert($array,MYSQL_PROJECT . ".module_catalog");    
+                    }
+                    else
+                    {
+                        $errors["catalog_title_error"] = true;
+                    }   
+                }
+                
+                if($this->gvar('b1') && empty($errors))
+                {
+                    $this->Redirect('module-catalog.php');
+                }               
+            }
+        }        
+        
+        $array = array
+        (
+            'target' => $target,
+            'errors' => $errors,
+        );  
+        
+        $this->displayThread($array);
+    }
+    
+    
+    function displayCatalogCats($target="")
+    {
+        $_category_id    = $this->clearDigit( $this->gvar('_category_id') );
+        
+        if(!empty($_category_id))
+        {
+            if($this->deleteCategoryFull($_category_id))
+            {
+                $this->Redirect('module-catalog-cats.php?catalog_id=' . $this->catalog_id);                
+            }
+        }
+        
+        $categorylist = $this->prepCategoryList($this->model->GetCategoryList($this->catalog_id));
+        
+        $array = array
+        (
+            'categorylist' => $categorylist,
+            'target' => $target,
+            'errors' => $errors           
+        );  
+        
+        $this->displayThread($array);
+        
+    }
+    
+
+    function displayCatalogObjects($target="")
+    {
+        $_object_id    = $this->clearDigit( $this->gvar('_object_id') );
+        
+        if(!empty($_object_id))
+        {
+            if($this->deleteObject($_object_id))
+            {
+                $this->Redirect('module-catalog-objects.php?catalog_id=' . $this->catalog_id . '&category_id=' . $this->category_id);
+            }            
+        }
+        
+        $__move_object_id    = $this->clearDigit( $this->gvar('__move_object_id') );
+        
+        if(!empty($__move_object_id))
+        {
+            $object = $this->model->getObject($this->catalog_id, $this->object_id);
+            $moveobject = $this->model->getObject($this->catalog_id, $__move_object_id);
+            
+            if(!empty($object) && !empty($moveobject))
+            {
+                $this->model->Update(array('object_sort'=>$moveobject['object_sort']),MYSQL_PROJECT . ".module_catalog_object"," where catalog_id=" . $this->catalog_id . " AND object_id=" . $this->object_id);
+                $this->model->Update(array('object_sort'=>$object['object_sort']),MYSQL_PROJECT . ".module_catalog_object"," where catalog_id=" . $this->catalog_id . " AND object_id=" . $__move_object_id);
+                
+                $this->model->Update(array('object_sort'=>$moveobject['object_sort']),MYSQL_PROJECT . ".module_catalog_object_index"," where catalog_id=" . $this->catalog_id . " AND object_id=" . $this->object_id);
+                $this->model->Update(array('object_sort'=>$object['object_sort']),MYSQL_PROJECT . ".module_catalog_object_index"," where catalog_id=" . $this->catalog_id . " AND object_id=" . $__move_object_id);
+                
+                $this->Redirect('module-catalog-objects.php?catalog_id=' . $this->catalog_id . '&category_id=' . $this->category_id);
+            }
+        }
+        
+        $objectlist = $this->model->GetobjectList($this->catalog_id, $this->category_id);
+        
+        $array = array
+        (
+            'objectlist' => $objectlist,
+            'target' => $target,
+            'errors' => $errors           
+        );  
+        
+        $this->displayThread($array);
+        
+    }    
+    
+    
+    public function displayCategoryForm($target="")
+    {        
+        $_propertie_id    = $this->clearDigit( $this->gvar('_propertie_id') );
+        
+        if(!empty($_propertie_id))
+        {
+            if($this->deleteCategoryPropertieValue($_propertie_id))
+            {
+                $this->Redirect('module-catalog-cats_form.php?catalog_id=' . $this->catalog_id . '&category_id=' . $this->category_id);   
+            }
+        }
+        
+        $propertielist = $this->model->GetCategoryPropertieList($this->catalog_id, $this->category_id);
+        
+        if($this->isSometingPost())
+        {   
+            $category_title = $this->clearStr($this->gvar('category_title'));           
+            $category_field = $this->gvar('category_field');
+            $category_sort = $this->clearStr($this->gvar('category_sort'));
+            
+            $array = array(
+                'category_title'=>$category_title,
+                'category_system_title'=>$this->getSystemtitle($category_title),
+                'category_parent_id'=>$this->category_parent_id,                
+                'catalog_id'=>$this->catalog_id
+            );  
+            
+            $errors = $this->GetErrors(array('category_title'));
+            
+            if(empty($errors))
+            {
+                if($this->model->IsExists(MYSQL_PROJECT . ".module_catalog_category"," WHERE catalog_id=" . $this->catalog_id . " AND category_id=" . $this->category_id . " AND category_parent_id=" . $this->category_parent_id))
+                {
+                    $this->model->Update($array,MYSQL_PROJECT . ".module_catalog_category"," where catalog_id=" . $this->catalog_id . " AND category_id=" . $this->category_id . " AND category_parent_id=" . $this->category_parent_id);
+                }
+                else
+                {
+                    if(!$this->model->IsExists(MYSQL_PROJECT . ".module_catalog_category"," WHERE catalog_id = '" . $this->catalog_id . "' AND category_title = '" . $array['category_title'] . "' AND category_parent_id = '" . $this->category_parent_id . "'"))
+                    {
+                        $array['category_sort'] = ($this->model->getCategorySort($this->catalog_id, $this->category_parent_id) + 1);
+                        
+                        $this->category_id = $this->model->Insert($array,MYSQL_PROJECT . ".module_catalog_category");    
+                    }
+                    else
+                    {
+                        $errors["category_title_error"] = true;
+                    }   
+                }
+                
+                if(!empty($category_field) || !empty($_FILES))
+                {
+                    $this->saveCategoryFields($propertielist,$category_field);
+                }
+                
+                $params = array(
+                    'category_title' => $array['category_title'],
+                    'category_sort' => $category_sort,
+                    'category_parent_id' => $array['category_parent_id']
+                );
+                
+                $this->buildCategoryIndex($this->catalog_id, $this->category_id, $params);
+                
+                if($this->gvar('b1') && empty($errors))
+                {
+                    $this->Redirect('module-catalog-cats.php?catalog_id=' . $this->catalog_id);
+                }               
+            }
+        }        
+        
+        $arrayslist = $this->getLists2d($this->model->GetCategoryArrayList(),'propertie_id','array_value');
+        
+        
+        if(!empty($propertielist))
+        {
+            foreach($propertielist as $key=>$propertie)
+            {
+                $propertielist[$key]['propertie_value'] = $this->model->GetCategoryPropertieValue($propertie['propertie_id']);
+            }
+        }
+        
+        $array = array
+        (
+            'propertielist' => $propertielist,
+            'arrayslist' => $arrayslist,
+            'target' => $target,
+            'errors' => $errors,
+        );  
+        
+        $this->displayThread($array);
+    }
+    
+    
+    public function displayObjectForm($target="")
+    {        
+        $_propertie_id    = $this->clearDigit( $this->gvar('_propertie_id') );
+        
+        if(!empty($_propertie_id))
+        {
+            if($this->deleteObjectPropertieValue($_propertie_id, $this->object_id))
+            {
+                $this->Redirect('module-catalog-objects_form.php?catalog_id=' . $this->catalog_id . '&category_id=' . $this->category_id . '&object_id=' . $this->object_id);   
+            }
+        }
+        
+        $propertielist = $this->model->GetObjectPropertieList($this->catalog_id, $this->category_id);
+        
+        if($this->isSometingPost())
+        {   
+            $object_title = $this->clearStr($this->gvar('object_title'));
+            $object_sort = $this->clearStr($this->gvar('object_sort'));           
+            $object_field = $this->gvar('object_field');
+            
+            $array = array(
+                'object_title'=>$object_title,
+                'object_system_title'=>$this->getSystemtitle($object_title),
+                'category_id'=>$this->category_id,
+                'catalog_id'=>$this->catalog_id
+            );            
+            
+            $errors = $this->GetErrors(array('object_title'));
+            
+            if(empty($errors))
+            {
+                if($this->model->IsExists(MYSQL_PROJECT . ".module_catalog_object"," WHERE catalog_id=" . $this->catalog_id . " AND category_id=" . $this->category_id . " AND object_id=" . $this->object_id ))
+                {
+                    $this->model->Update($array,MYSQL_PROJECT . ".module_catalog_object"," where catalog_id=" . $this->catalog_id . " AND category_id=" . $this->category_id . " AND object_id=" . $this->object_id);
+                }
+                else
+                {
+                    if(!$this->model->IsExists(MYSQL_PROJECT . ".module_catalog_object"," WHERE catalog_id = '" . $this->catalog_id . "' AND object_title = '" . $array['object_title'] . "'"))
+                    {
+                        $array['object_sort'] = ($this->model->getObjectSort($this->catalog_id, $this->category_id) + 1);
+                        
+                        $this->object_id = $this->model->Insert($array,MYSQL_PROJECT . ".module_catalog_object");    
+                    }
+                    else
+                    {
+                        $errors["object_title_error"] = true;
+                    }   
+                }
+                
+                if(!empty($object_field) || !empty($_FILES))
+                {
+                    $this->saveObjectFields($propertielist,$object_field,$this->object_id);
+                }
+                
+                $params = array
+                (
+                    'object_title' => $array['object_title'],
+                    'object_sort' => $object_sort
+                );
+                
+                $this->buildObjectIndex($this->catalog_id, $this->category_id, $this->object_id, $params);
+                
+                if($this->gvar('b1') && empty($errors))
+                {
+                    $this->Redirect('module-catalog-objects.php?catalog_id=' . $this->catalog_id . '&category_id=' . $this->category_id . '&object_id=' . $this->object_id );
+                }               
+            }
+        }        
+        
+        $arrayslist = $this->getLists2d($this->model->GetObjectArrayList(),'propertie_id','array_value');
+        
+        
+        if(!empty($propertielist))
+        {
+            foreach($propertielist as $key=>$propertie)
+            {
+                $propertielist[$key]['propertie_value'] = $this->model->GetObjectPropertieValue($propertie['propertie_id'],$this->object_id);
+            }
+        }
+        
+        $array = array
+        (
+            'propertielist' => $propertielist,
+            'arrayslist' => $arrayslist,
+            'target' => $target,
+            'errors' => $errors,
+        );  
+        
+        $this->displayThread($array);
+    }     
+    
+    function displayCategoryPropertieForm($target="")
+    {
+        $_array_id    = $this->clearDigit( $this->gvar('_array_id') );
+        
+        if(!empty($_array_id))
+        {
+            $this->model->Delete(MYSQL_PROJECT . ".module_catalog_category_propertie_array"," where array_id = '" . $_array_id . "'");
+            $this->Redirect('module-catalog-cats-propertie_form.php?catalog_id=' . $this->catalog_id . '&category_id=' . $this->category_id . '&propertie_id=' . $this->propertie_id);                   
+        }        
+        
+        if($this->isSometingPost())
+        {   
+            $propertie_title = $this->clearStr($this->gvar('propertie_title'));
+            $exists_propertie_id = $this->clearDigit($this->gvar('exists_propertie_id',0));           
+            
+            if(!empty($exists_propertie_id))
+            {
+                $exists_propertie = $this->model->getCategoryPropertie($this->catalog_id, $exists_propertie_id);
+                
+                if(!empty($exists_propertie))
+                {
+                    $array = array(
+                        'propertie_title'=>$exists_propertie['propertie_title'],
+                        'propertie_system_title'=>$this->getSystemtitle($exists_propertie['propertie_title']),
+                        'propertie_parent_id'=>$exists_propertie['propertie_id'],
+                        'type_id'=>$exists_propertie['type_id'],
+                        'category_id'=>$this->category_id,
+                        'catalog_id'=>$this->catalog_id
+                    );                    
+                }
+            }
+            else
+            {
+                $array = array(
+                    'propertie_title'=>$propertie_title,
+                    'propertie_system_title'=>$this->getSystemtitle($propertie_title),
+                    'propertie_parent_id'=>0,
+                    'type_id'=>$this->clearDigit($this->gvar('type_id')),
+                    'category_id'=>$this->category_id,
+                    'catalog_id'=>$this->catalog_id
+                );                
+            }
+            
+            if(empty($array['propertie_title']))
+            {
+                $errors = array('propertie_title_error'=>true);
+            }
+            
+            if(empty($errors))
+            {
+                if($this->model->IsExists(MYSQL_PROJECT . ".module_catalog_category_propertie"," WHERE catalog_id=" . $this->catalog_id . " AND propertie_id=" . $this->propertie_id))
+                {
+                    $this->model->Update($array,MYSQL_PROJECT . ".module_catalog_category_propertie"," where catalog_id=" . $this->catalog_id . " AND propertie_id=" . $this->propertie_id);
+                }
+                else
+                {
+                    if(!$this->model->IsExists(MYSQL_PROJECT . ".module_catalog_category_propertie"," WHERE catalog_id = '" . $this->catalog_id . "' AND propertie_parent_id = '" . $exists_propertie_id . "' AND propertie_title = '" . $array['propertie_title'] . "'"))
+                    {
+                        $array['propertie_sort'] = ($this->model->GetCategoryPropertieSort($this->catalog_id,$this->category_id) + 1);
+                        $this->propertie_id = $this->model->Insert($array,MYSQL_PROJECT . ".module_catalog_category_propertie");    
+                    }
+                    else
+                    {
+                        $errors["propertie_title_error"] = true;
+                    }   
+                }
+                
+                if($this->gvar('b1') && empty($errors))
+                {
+                    $this->Redirect('module-catalog-cats-properties.php?catalog_id=' . $this->catalog_id . '&category_id=' . $this->category_id);
+                }               
+            }
+        }
+
+        $propertielist = $this->model->GetCategoryUniquePropertieList($this->catalog_id);
+        $propertiearraylist = $this->model->GetCategoryPropertieArrayList($this->propertie_id);
+        
+        $array = array
+        (
+            'propertielist' => $propertielist,
+            'propertiearraylist' => $propertiearraylist,
+            'target' => $target,
+            'errors' => $errors           
+        );  
+        
+        $this->displayThread($array);
+        
+    }    
+    
+    
+    function displayObjectPropertieForm($target="")
+    {        
+        $_array_id    = $this->clearDigit( $this->gvar('_array_id') );
+        
+        if(!empty($_array_id))
+        {
+            $this->model->Delete(MYSQL_PROJECT . ".module_catalog_object_propertie_array"," where array_id = '" . $_array_id . "'");
+            $this->Redirect('module-catalog-objects-propertie_form.php?catalog_id=' . $this->catalog_id . '&category_id=' . $this->category_id . '&object_id=' . $this->object_id . '&propertie_id=' . $this->propertie_id);                   
+        }        
+        
+        if($this->isSometingPost())
+        {   
+            $propertie_title = $this->clearStr($this->gvar('propertie_title'));
+            $exists_propertie_id = $this->clearDigit($this->gvar('exists_propertie_id',0));           
+            
+            if(!empty($exists_propertie_id))
+            {
+                $exists_propertie = $this->model->getObjectPropertie($this->catalog_id, $exists_propertie_id);
+                
+                if(!empty($exists_propertie))
+                {
+                    $array = array(
+                        'propertie_title'=>$exists_propertie['propertie_title'],
+                        'propertie_system_title'=>$this->getSystemtitle($exists_propertie['propertie_title']),
+                        'propertie_parent_id'=>$exists_propertie['propertie_id'],
+                        'type_id'=>$exists_propertie['type_id'],
+                        'category_id'=>$this->category_id,
+                        'catalog_id'=>$this->catalog_id
+                    );                    
+                }
+            }
+            else
+            {
+                $array = array(
+                    'propertie_title'=>$propertie_title,
+                    'propertie_system_title'=>$this->getSystemtitle($propertie_title),
+                    'propertie_parent_id'=>0,
+                    'type_id'=>$this->clearDigit($this->gvar('type_id')),
+                    'category_id'=>$this->category_id,
+                    'catalog_id'=>$this->catalog_id
+                );                
+            }
+            
+            if(empty($array['propertie_title']))
+            {
+                $errors = array('propertie_title_error'=>true);
+            }
+            
+            if(empty($errors))
+            {
+                if($this->model->IsExists(MYSQL_PROJECT . ".module_catalog_object_propertie"," WHERE catalog_id=" . $this->catalog_id . " AND propertie_id=" . $this->propertie_id))
+                {
+                    $this->model->Update($array,MYSQL_PROJECT . ".module_catalog_object_propertie"," where catalog_id=" . $this->catalog_id . " AND propertie_id=" . $this->propertie_id);
+                }
+                else
+                {
+                    if(!$this->model->IsExists(MYSQL_PROJECT . ".module_catalog_object_propertie"," WHERE catalog_id = '" . $this->catalog_id . "' AND propertie_parent_id = '" . $exists_propertie_id . "' AND propertie_title = '" . $array['propertie_title'] . "' AND category_id = '" . $this->category_id . "'"))
+                    {
+                        $array['propertie_sort'] = ($this->model->GetObjectPropertieSort($this->catalog_id,$this->category_id) + 1);
+                        $this->propertie_id = $this->model->Insert($array,MYSQL_PROJECT . ".module_catalog_object_propertie");    
+                    }
+                    else
+                    {
+                        $errors["propertie_title_error"] = true;
+                    }   
+                }
+                
+                if($this->gvar('b1') && empty($errors))
+                {
+                    $this->Redirect('module-catalog-objects-properties.php?catalog_id=' . $this->catalog_id . '&category_id=' . $this->category_id . '&object_id=' . $this->object_id);
+                }               
+            }
+        }
+
+        $propertielist = $this->model->GetObjectUniquePropertieList($this->catalog_id);
+        $propertiearraylist = $this->model->GetObjectPropertieArrayList($this->propertie_id);
+        
+        $array = array
+        (
+            'propertielist' => $propertielist,
+            'propertiearraylist' => $propertiearraylist,
+            'target' => $target,
+            'errors' => $errors           
+        );  
+        
+        $this->displayThread($array);
+        
+    }    
+    
+    public function displayCategoryProperties($target="")
+    {
+        $_propertie_id    = $this->clearDigit( $this->gvar('_propertie_id') );
+        
+        if(!empty($_propertie_id))
+        {
+            $this->deleteCategoryPropertie($_propertie_id);
+            $this->Redirect('module-catalog-cats-properties.php?catalog_id=' . $this->catalog_id . '&category_id=' . $this->category_id);            
+        }
+        
+        $array = array
+        (
+            'propertielist' => $this->model->GetCategoryPropertieList($this->catalog_id, $this->category_id),
+            'target' => $target,
+            'errors' => $errors           
+        );  
+        
+        $this->displayThread($array);        
+    }
+    
+    
+    public function displayObjectProperties($target="")
+    {
+        $_propertie_id    = $this->clearDigit( $this->gvar('_propertie_id') );
+        
+        if(!empty($_propertie_id))
+        {
+            $this->deleteObjectPropertie($_propertie_id);
+            $this->Redirect('module-catalog-objects-properties.php?catalog_id=' . $this->catalog_id . '&category_id=' . $this->category_id . '&object_id=' . $this->object_id);            
+        }
+        
+        $array = array
+        (
+            'propertielist' => $this->model->GetObjectPropertieList($this->catalog_id, $this->category_id),
+            'target' => $target,
+            'errors' => $errors           
+        );  
+        
+        $this->displayThread($array);        
+    }    
+    
+    
+    public function displayCategoryPropertieArrayForm($target="")
+    {        
+        if($this->isSometingPost())
+        {   
+            $array_value = $this->clearStr($this->gvar('array_value'));           
+            
+            $array = array(
+                'array_value'=>$array_value,
+                'propertie_id'=>$this->propertie_id
+            );            
+            
+            $errors = $this->GetErrors(array('array_value'));
+            
+            if(empty($errors))
+            {
+                if($this->model->IsExists(MYSQL_PROJECT . ".module_catalog_category_propertie_array"," WHERE propertie_id = '" . $this->propertie_id . "' AND array_id = '" . $this->array_id . "'"))
+                {
+                    $this->model->Update($array,MYSQL_PROJECT . ".module_catalog_category_propertie_array"," where propertie_id = '" . $this->propertie_id . "' AND array_id = '" . $this->array_id . "'");
+                }
+                else
+                {
+                    if(!$this->model->IsExists(MYSQL_PROJECT . ".module_catalog_category_propertie_array"," WHERE propertie_id = '" . $this->propertie_id . "' AND array_value = '" . $array['array_value'] . "'"))
+                    {
+                        $this->array_id = $this->model->Insert($array,MYSQL_PROJECT . ".module_catalog_category_propertie_array");    
+                    }
+                    else
+                    {
+                        $errors["array_value_error"] = true;
+                    }   
+                }
+                
+                if($this->gvar('b1') && empty($errors))
+                {
+                    $this->Redirect('module-catalog-cats-propertie_form.php?catalog_id=' . $this->catalog_id . '&category_id=' . $this->category_id . '&propertie_id=' . $this->propertie_id);
+                }               
+            }
+            
+        }        
+        
+        $array = array
+        (
+            'target' => $target,
+            'errors' => $errors,
+        );  
+        
+        $this->displayThread($array);
+    }
+    
+    
+    public function displayObjectPropertieArrayForm($target="")
+    {        
+        if($this->isSometingPost())
+        {   
+            $array_value = $this->clearStr($this->gvar('array_value'));           
+            
+            $array = array(
+                'array_value'=>$array_value,
+                'propertie_id'=>$this->propertie_id
+            );            
+            
+            $errors = $this->GetErrors(array('array_value'));
+            
+            if(empty($errors))
+            {
+                if($this->model->IsExists(MYSQL_PROJECT . ".module_catalog_object_propertie_array"," WHERE propertie_id = '" . $this->propertie_id . "' AND array_id = '" . $this->array_id . "'"))
+                {
+                    $this->model->Update($array,MYSQL_PROJECT . ".module_catalog_object_propertie_array"," where propertie_id = '" . $this->propertie_id . "' AND array_id = '" . $this->array_id . "'");
+                }
+                else
+                {
+                    if(!$this->model->IsExists(MYSQL_PROJECT . ".module_catalog_object_propertie_array"," WHERE propertie_id = '" . $this->propertie_id . "' AND array_value = '" . $array['array_value'] . "'"))
+                    {
+                        $this->array_id = $this->model->Insert($array,MYSQL_PROJECT . ".module_catalog_object_propertie_array");    
+                    }
+                    else
+                    {
+                        $errors["array_value_error"] = true;
+                    }   
+                }
+                
+                if($this->gvar('b1') && empty($errors))
+                {
+                    $this->Redirect('module-catalog-objects-propertie_form.php?catalog_id=' . $this->catalog_id . '&category_id=' . $this->category_id . '&object_id=' . $this->object_id . '&propertie_id=' . $this->propertie_id);
+                }               
+            }
+            
+        }        
+        
+        $array = array
+        (
+            'target' => $target,
+            'errors' => $errors,
+        );  
+        
+        $this->displayThread($array);
+    }        
+    
+    protected function buildCategoryIndex($catalog_id = 0, $category_id = 0, $params = array())
+    {
+        if(empty($catalog_id) || empty($category_id))
+        {
+            return false;
+        }
+        
+        //index
+        $index = array(
+            'category_id'=>$category_id,
+            'catalog_id'=>$catalog_id,
+            'category'=>serialize(self::$CatalogCategoryIndex[$catalog_id][$category_id]),
+        );
+        
+        $index = array_merge($index, $params);
+        
+        $this->model->Delete(MYSQL_PROJECT . ".module_catalog_category_index"," where catalog_id = '" . $catalog_id . "' AND category_id = '" . $category_id . "'");
+        return $this->model->Insert($index,MYSQL_PROJECT . ".module_catalog_category_index");
+        
+    }
+    
+    protected function deleteCategoryIndex($category_id = 0)
+    {
+        if(empty($category_id))
+        {
+            return false;
+        }
+        
+        $this->model->Delete(MYSQL_PROJECT . ".module_catalog_category_index"," where category_id='" . $category_id . "'");        
+        
+    }    
+    
+    protected function buildObjectIndex($catalog_id = 0, $category_id = 0, $object_id = 0, $params = array())
+    {
+        if(empty($catalog_id) || empty($category_id) || empty($object_id))
+        {
+            return false;
+        }
+        
+        //index
+        $index = array(
+            'object_id'=>$object_id,
+            'category_id'=>$category_id,
+            'catalog_id'=>$catalog_id,
+            'object'=>serialize(self::$CatalogObjectIndex[$catalog_id][$object_id]),
+        );
+        
+        $index = array_merge($index, $params);
+        
+        $this->model->Delete(MYSQL_PROJECT . ".module_catalog_object_index"," where catalog_id = '" . $catalog_id . "' AND category_id = '" . $category_id . "' AND object_id='" . $object_id . "'");
+        return $this->model->Insert($index,MYSQL_PROJECT . ".module_catalog_object_index");
+        
+    }     
+    
+    protected function deleteObjectIndex($object_id = 0)
+    {
+        if(empty($object_id))
+        {
+            return false;
+        }
+        
+        $this->model->Delete(MYSQL_PROJECT . ".module_catalog_object_index"," where object_id='" . $object_id . "'");        
+        
+    }
+       
+    
+    protected function deleteCatalog($catalog_id = 0)
+    {
+        if(empty($catalog_id))  return false;
+        
+        $categories = $this->model->GetParentCategoryList($catalog_id);
+        
+        if(!empty($categories))
+        {
+            foreach($categories as $cat)
+            {
+                $this->deleteCategoryFull($cat['category_id']);
+            }
+        }
+        
+        
+        
+        $this->model->Delete(MYSQL_PROJECT . ".module_catalog"," where catalog_id = '" . $catalog_id . "'");
+        
+        return true;        
+    }
+    
+    protected function deleteCategoryFull($category_id = 0)
+    {
+        if(empty($category_id)) return false;
+        
+        $category_children = $this->getCategoryChildren($category_id);
+        
+        if($this->deleteCategory($category_id))
+        {
+            $category_children = $this->getCategoryChildren($category_id);
+            
+            if(!empty($category_children))
+            {
+                foreach($category_children as $child)
+                {
+                    $this->deleteCategory($child['category_id']);
+                }   
+            }            
+            
+            $objectlist = $this->model->GetobjectList($this->catalog_id, $category_id);
+            
+            if(!empty($objectlist))
+            {
+                foreach($objectlist as $object)
+                {
+                    $this->deleteObject($object['object_id']);
+                }
+            }
+            
+            $this->deleteObjectCategories($category_id);                                   
+        }
+        
+        return true;        
+    }
+    
+    protected function GetCategoryChildren($category_id = 0, $category_children = array())
+    {
+        if(empty($category_id)) return $category_children;
+        
+        $_temp = $this->model->getCategoryChildrenList($this->catalog_id, $category_id);
+        
+        if(!empty($_temp))
+        {
+            foreach($_temp as $child)
+            {
+                $result = $this->GetCategoryChildren($child['category_id'],$_temp);
+                
+                if(!empty($result))
+                {
+                    foreach($result as $r)
+                    {
+                        if(empty($category_children[$r['category_id']]))
+                        {
+                            $category_children[$r['category_id']] = $r;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return $category_children;     
+    }
+    
+            
+    protected function deleteCategoryPropertieValue($propertie_id = 0)
+    {
+        if(empty($propertie_id))
+        {
+            return false;
+        }
+        
+        $propertie = $this->model->GetCategoryPropertie($this->catalog_id, $propertie_id);
+        $propertie['propertie_value'] = $this->model->GetCategoryPropertieValue($propertie_id);
+        
+        if(empty($propertie))
+        {
+            return false;
+        }
+        
+        switch($propertie['type_id'])
+        {
+            case '5':
+                //image
+                if($this->deleteFile($this->CatalogCategoryDir . 'image' . DIRECTORY_SEPARATOR . $propertie['propertie_value']))
+                {
+                    $this->deleteSubpath($this->CatalogCategoryDir . 'image' . DIRECTORY_SEPARATOR, $propertie['propertie_value']);    
+                }            
+            break;
+            case '7':
+                //document
+                if($this->deleteFile($this->CatalogCategoryDir . 'document' . DIRECTORY_SEPARATOR . $propertie['propertie_value']))
+                {
+                    $this->deleteSubpath($this->CatalogCategoryDir . 'document' . DIRECTORY_SEPARATOR, $propertie['propertie_value']);    
+                }
+            break;
+        }
+        
+        $this->model->Delete(MYSQL_PROJECT . ".module_catalog_category_propertie_array"," where propertie_id = '" . $propertie['propertie_id'] . "'");
+        $this->model->Delete(MYSQL_PROJECT . ".module_catalog_category_propertie_value"," where propertie_id = '" . $propertie['propertie_id'] . "'");
+        
+        return true;
+        
+    }
+    
+    protected function deleteObjectCategories($category_id = 0)
+    {
+        if(empty($category_id))
+        {
+            return false;
+        }
+        
+        $propertielist = $this->model->GetObjectPropertieList($this->catalog_id, $category_id);
+        
+        if(!empty($propertielist))
+        {
+            foreach($propertielist as $propertie)
+            {
+                $this->model->Delete(MYSQL_PROJECT . ".module_catalog_object_propertie"," where propertie_id = '" . $propertie['propertie_id'] . "'");
+                $this->model->Delete(MYSQL_PROJECT . ".module_catalog_object_propertie_array"," where propertie_id = '" . $propertie['propertie_id'] . "'");
+            }
+        }
+        
+        return false;
+        
+    }
+    
+    protected function deleteObjectPropertieValue($propertie_id = 0, $object_id = 0)
+    {
+        if(empty($propertie_id) || empty($object_id))
+        {
+            return false;
+        }
+        
+        $propertie = $this->model->GetObjectPropertie($this->catalog_id, $propertie_id);
+        $propertie['propertie_value'] = $this->model->GetObjectPropertieValue($propertie_id, $object_id);
+        
+        if(empty($propertie))
+        {
+            return false;
+        }
+        
+        switch($propertie['type_id'])
+        {
+            case '5':
+                //image
+                if($this->deleteFile($this->CatalogObjectDir . 'image' . DIRECTORY_SEPARATOR . $propertie['propertie_value']))
+                {
+                    $this->deleteSubpath($this->CatalogObjectDir . 'image' . DIRECTORY_SEPARATOR, $propertie['propertie_value']);    
+                }            
+            break;
+            case '7':
+                //document
+                if($this->deleteFile($this->CatalogObjectDir . 'document' . DIRECTORY_SEPARATOR . $propertie['propertie_value']))
+                {
+                    $this->deleteSubpath($this->CatalogObjectDir . 'document' . DIRECTORY_SEPARATOR, $propertie['propertie_value']);    
+                }
+            break;
+        }
+        
+        $this->model->Delete(MYSQL_PROJECT . ".module_catalog_object_propertie_value"," where propertie_id = '" . $propertie['propertie_id'] . "' AND object_id = '" . $object_id . "'");
+        
+        return true;
+        
+    }    
+    
+    protected function deleteSubpath($path = '', $subpath = '')
+    {
+        if(empty($path) || empty($subpath)) return false;
+        
+        $temp = explode("/", $subpath);
+        
+        if(empty($temp))    return false;
+        
+        unset($temp[count($temp)-1]);
+        
+        $cnt = count($temp);
+        
+        $delete = array();  
+        
+        for($i=0; $i<$cnt-1;$i++)
+        {
+            foreach($temp as $k=>$v)
+            {
+                $delete[$i] .= $v . "/";
+            }
+            unset($temp[$k]);            
+        }
+        
+        if(empty($delete)) return false;
+        
+        foreach($delete as $k=>$v)
+        {
+            $this->deleteDirectory($path . $v);
+        }
+        
+        return true;
+        
+    }
+    
+    protected function deleteCategoryPropertie($propertie_id = 0)
+    {
+        if(empty($propertie_id))    return false;
+        
+        if($this->deleteCategoryPropertieValue($propertie_id))
+        {
+            $this->model->Delete(MYSQL_PROJECT . ".module_catalog_category_propertie"," where propertie_id = '" . $propertie_id . "'");
+            return true;
+        }
+        
+        return false;
+    }
+    
+    protected function deleteObjectPropertie($propertie_id = 0)
+    {
+        if(empty($propertie_id))    return false;
+        
+        if($this->deleteObjectPropertieValue($propertie_id, $this->object_id))
+        {
+            $this->model->Delete(MYSQL_PROJECT . ".module_catalog_object_propertie"," where propertie_id = '" . $propertie_id . "'");
+            return true;
+        }
+        
+        return false;
+    }    
+    
+    protected function deleteCategory($category_id = 0)
+    {
+        if(empty($category_id)) return false;
+        
+        $propertielist = $this->model->GetCategoryPropertieList($this->catalog_id, $category_id);
+        
+        if(!empty($propertielist))
+        {
+            foreach($propertielist as $propertie)
+            {
+                $this->deleteCategoryPropertie($propertie['propertie_id']);
+            }
+        }
+        
+        $this->model->Delete(MYSQL_PROJECT . ".module_catalog_category"," where category_id = '" . $category_id . "'");
+        $this->deleteCategoryIndex($category_id);
+        
+        $this->deleteDirectory($this->CatalogCategoryDir . 'image' . DIRECTORY_SEPARATOR . $category_id);
+        $this->deleteDirectory($this->CatalogCategoryDir . 'document' . DIRECTORY_SEPARATOR . $category_id);        
+        
+        return true;
+        
+    }
+    
+    protected function deleteObject($object_id = 0)
+    {
+        if(empty($object_id)) return false;
+        
+        $valuelist = $this->model->GetObjectValueList($object_id);
+        
+        if(!empty($valuelist))
+        {
+            foreach($valuelist as $value)
+            {
+                $this->deleteObjectPropertieValue($value['propertie_id'], $object_id);
+            }
+        }
+        
+        $this->model->Delete(MYSQL_PROJECT . ".module_catalog_object"," where object_id = '" . $object_id . "'");
+        $this->deleteObjectIndex($object_id);
+        
+        $this->deleteDirectory($this->CatalogObjectDir . 'image' . DIRECTORY_SEPARATOR . $object_id);
+        $this->deleteDirectory($this->CatalogObjectDir . 'document' . DIRECTORY_SEPARATOR . $object_id);
+        
+        return true;
+        
+    }        
+    
+    protected function deleteFile($file = "")
+    {
+        if(empty($file))    return false;
+        
+        if(!file_exists($file)) return false;
+        
+        return unlink($file);
+    }
+    
+    protected function deleteDirectory($dir = "")
+    {
+        if(empty($dir))    return false;
+        
+        if(!is_dir($dir)) return false;
+        
+        return rmdir($dir);
+    }
+    
+    
+    protected function saveObjectFields($propertielist=array(), $propertiefields=array(),$object_id = 0)
+    {
+        global $errors;
+        
+        if(empty($propertielist) || empty($object_id))
+        {
+            return false;
+        }
+        
+        $propertielist = $this->getListReplaceIndex($propertielist,'propertie_id');
+        
+        foreach($propertielist as $propertie_id => $propertie)
+        {
+            $array = array();
+            $value = (!empty($propertiefields[$propertie_id]))  ?   $propertiefields[$propertie_id] :   null;
+            
+            switch($propertie['type_id'])
+            {
+                case '4':
+                    //wysiwyg
+            		if ( get_magic_quotes_gpc() )
+                    {
+                        $value = htmlspecialchars( stripslashes((string)$value) );
+                    }
+                    else
+                    {
+                        $value = htmlspecialchars( (string)$value );                        
+                    }
+                    $array = array(
+                        'propertie_id' => $propertie_id,
+                        'value_content' => $value,
+                        'object_id' => $object_id
+                    );                    
+                    break;
+                case '5':
+                    //image
+                    if($this->isFileUploaded($propertie_id,'object_field'))
+                    {
+                        if(!$upload = $this->uploadFile($propertie, $this->CatalogObjectDir,'image','object_field'))
+                        {
+                            $errors["object_field_" . $propertie_id . "_error"] = true;
+                        }
+                        
+                        $value = $upload['uploadPath'] . $upload['filename'];
+                        
+                        $array = array(
+                            'propertie_id' => $propertie_id,
+                            'value_content' => $value,
+                            'object_id' => $object_id
+                        );                        
+                    }
+                    break;
+                case '7':
+                    //document
+                    if($this->isFileUploaded($propertie_id,'object_field'))
+                    {
+                        if(!$upload = $this->uploadFile($propertie, $this->CatalogObjectDir,'document','object_field'))
+                        {
+                            $errors["object_field_" . $propertie_id . "_error"] = true;
+                        }
+                        
+                        $value = $upload['uploadPath'] . $upload['filename'];
+                        
+                        $array = array(
+                            'propertie_id' => $propertie_id,
+                            'value_content' => $value,
+                            'object_id' => $object_id
+                        );                        
+                    }
+                    break;
+                default:
+                    $array = array(
+                        'propertie_id' => $propertie_id,
+                        'value_content' => $value,
+                        'object_id' => $object_id
+                    );
+                    break;
+            }
+            
+            if(!empty($array))
+            {
+                $this->model->Delete(MYSQL_PROJECT . ".module_catalog_object_propertie_value"," where propertie_id = '" . $propertie_id . "' AND object_id = '" . $object_id . "'");
+                $this->model->Insert($array,MYSQL_PROJECT . ".module_catalog_object_propertie_value");                
+            }
+            
+            $propertie['value_content'] = (!empty($value))  ?   $value  :   $this->model->GetObjectPropertieValue($propertie_id, $object_id);
+            
+            self::addObjectIndex($this->catalog_id, $object_id, $propertie_id, $propertie);            
+            
+        }
+    }    
+
+        
+    
+    protected function saveCategoryFields($propertielist=array(), $propertiefields=array())
+    {
+        global $errors;
+        
+        if(empty($propertielist))
+        {
+            return false;
+        }
+        
+        $propertielist = $this->getListReplaceIndex($propertielist,'propertie_id');
+        
+        foreach($propertielist as $propertie_id => $propertie)
+        {
+            $array = array();
+            $value = (!empty($propertiefields[$propertie_id]))  ?   $propertiefields[$propertie_id] :   null;
+            
+            switch($propertie['type_id'])
+            {
+                case '4':
+                    //wysiwyg
+            		if ( get_magic_quotes_gpc() )
+                    {
+                        $value = htmlspecialchars( stripslashes((string)$value) );
+                    }
+                    else
+                    {
+                        $value = htmlspecialchars( (string)$value );                        
+                    }
+                    $array = array(
+                        'propertie_id' => $propertie_id,
+                        'value_content' => $value
+                    );                    
+                    break;
+                case '5':
+                    //image
+                    if($this->isFileUploaded($propertie_id))
+                    {
+                        if(!$upload = $this->uploadFile($propertie, $this->CatalogCategoryDir))
+                        {
+                            $errors["category_field_" . $propertie_id . "_error"] = true;
+                        }
+                        
+                        $value = $upload['uploadPath'] . $upload['filename'];
+                        
+                        $array = array(
+                            'propertie_id' => $propertie_id,
+                            'value_content' => $value
+                        );                        
+                    }
+                    break;
+                case '7':
+                    //document
+                    if($this->isFileUploaded($propertie_id))
+                    {
+                        if(!$upload = $this->uploadFile($propertie, $this->CatalogCategoryDir,'document'))
+                        {
+                            $errors["category_field_" . $propertie_id . "_error"] = true;
+                        }
+                        
+                        $value = $upload['uploadPath'] . $upload['filename'];
+                        
+                        $array = array(
+                            'propertie_id' => $propertie_id,
+                            'value_content' => $value
+                        );                        
+                    }
+                    break;
+                default:
+                    $array = array(
+                        'propertie_id' => $propertie_id,
+                        'value_content' => $value
+                    );
+                    break;
+            }
+            
+            if(!empty($array))
+            {
+                $this->model->Delete(MYSQL_PROJECT . ".module_catalog_category_propertie_value"," where propertie_id = '" . $propertie_id . "'");
+                $this->model->Insert($array,MYSQL_PROJECT . ".module_catalog_category_propertie_value");                
+            }
+            
+            $propertie['value_content'] = (!empty($value))  ?   $value  :   $this->model->GetCategoryPropertieValue($propertie_id);
+            
+            self::addCategoryIndex($this->catalog_id, $this->category_id, $propertie_id, $propertie);
+            
+        }
+        
+    }
+    
+    protected function isFileUploaded($propertie_id, $field = 'category_field')
+    {
+        if($_FILES[$field]['size'][$propertie_id] > 0)
+        {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    protected function uploadFile($propertie = array(), $uploadPath = '', $type = 'image',$field = 'category_field')
+    {
+        if(empty($propertie['propertie_id']))    return false;
+        
+        if($this->isFileUploaded($propertie['propertie_id'],$field))
+        {
+            $upload = array(
+                'tmpname' => $_FILES[$field]['tmp_name'][$propertie['propertie_id']],
+                'size' => $_FILES[$field]['size'][$propertie['propertie_id']],
+                'ext' => $this->getFileExt($_FILES[$field]['name'][$propertie['propertie_id']]),
+                'uploadPath' => $this->getUploadPath((!empty($this->object_id))?$this->object_id:$this->category_id, $propertie['propertie_id']),
+                'uploadDir' => $this->getUploadPath((!empty($this->object_id))?$this->object_id:$this->category_id, $propertie['propertie_id'], $uploadPath . $type . DIRECTORY_SEPARATOR)                                
+            );
+            
+            $upload['filename'] = $this->getFileName($propertie['propertie_id'], $propertie['type_id']) . '.' . $upload['ext'];
+            
+            if(!in_array($upload['ext'], $this->uploadType[$type]))   return false;
+
+            if(file_exists($upload['uploadDir'] . $upload['filename']))
+            {
+                $this->deleteFile($upload['uploadDir'] . $upload['filename']);
+            }
+
+            if(move_uploaded_file($upload['tmpname'], $upload['uploadDir'] . $upload['filename']))
+            {
+                return $upload;   
+            }
+        }
+    }
+    
+    protected function getFileExt($file = "")
+    {
+        if(empty($file))    return $file;
+        
+        $temp = explode(".", $file);
+        
+        return ($temp[count($temp)-1])  ?   $temp[count($temp)-1]   :   false;
+        
+    }
+    
+    protected function getUploadPath($path_id=0, $item_id=0, $dir='')
+    {
+    	if(empty($path_id) || empty($item_id))    return false;
+        
+        if(strlen($item_id)===1) $gall_str="00" . $item_id;
+    	elseif(strlen($item_id)===2) $gall_str="0" . $item_id;
+    	else $gall_str="" . $item_id;
+    	$path='';
+    	$len=strlen($gall_str)-1;
+    	$path=$path_id . "/" . $gall_str{$len}.$gall_str{$len-1} . "/" .$gall_str . '/';
+        
+        if(!empty($path) && !empty($dir))
+        {
+            $this->makeDir($dir);
+
+            $_temp = explode("/",$path);
+            $_temp_path = "";
+            
+            foreach($_temp as $k=>$v)
+            {
+                $_temp_path .= $v ."/";
+                
+                if(!is_dir($dir . $_temp_path))
+                {
+                    $oldumask = umask(0);
+                    mkdir($dir . $_temp_path,0777);
+                    umask($oldumask);
+                }                
+            }
+            
+            return $dir.$path;
+            
+        }
+    
+    	return $path;
+    }    
+    
+    protected function makeDir($dir = "")
+    {
+        if(empty($dir)) return false;
+        
+        if(!is_dir($dir))
+        {
+            $oldumask = umask(0);
+            mkdir($dir,0777);
+            umask($oldumask);
+        }        
+    }
+    
+    protected function getFileName($propertie_id = 0, $type_id = 0)
+    {
+        if(empty($propertie_id) || empty($type_id)) return false;
+        
+        return md5($propertie_id . $type_id);
+    }
+    
+    protected function prepCategoryList($array = array())
+    {
+        if(empty($array))
+        {
+            return $array;
+        }
+        
+        $temp = array();
+        
+        foreach($array as $a)
+        {
+            $temp[$a['category_parent_id']][] = $a;
+        }
+        
+        return $temp;
+        
+    }
+    
+    protected function getSystemtitle($title = "")
+    {
+        if(empty($title))
+        {
+            return false;
+        }
+        
+        return md5($title);
+    } 
+    
+    
+    protected function displayThread($array = array())
+    {        
+        $array['auth_user'] = $this->model->GetUserById($this->user->GetUserId());
+        $array['auth_user_login'] = $this->user->GetUserLogin();
+        $array['auth_user_hash'] = md5($array['auth_user_login']);        
+        $array['session_id'] = $this->model->GetSessionById($this->session->GetSessionId());
+        $array['moduleCatalog'] = $this->model->getCatalog($this->catalog_id);
+        $array['moduleCatalogType'] = $this->getList2d($this->model->GetCatalogTypeList($this->catalog_id),'type_id','type_title');
+        $array['moduleCatalogCategory'] = $this->model->getCategory($this->catalog_id, $this->category_id);
+        $array['moduleCatalogCategoryParent'] = $this->model->getCategory($this->catalog_id, $this->category_parent_id);
+        $array['moduleCatalogCategoryPropertie'] = $this->model->getCategoryPropertie($this->catalog_id,$this->propertie_id);
+        $array['moduleCatalogCategoryPropertieArray'] = $this->model->GetCategoryPropertieArray($this->array_id);        
+        $array['moduleCatalogObject'] = $this->model->getObject($this->catalog_id, $this->object_id);
+        $array['moduleCatalogObjectPropertie'] = $this->model->getObjectPropertie($this->catalog_id,$this->propertie_id);
+        $array['moduleCatalogObjectPropertieArray'] = $this->model->GetObjectPropertieArray($this->array_id);        
+        $array['catalog_id'] = $this->catalog_id;
+        $array['category_id'] = $this->category_id;
+        $array['object_id'] = $this->object_id;
+        $array['propertie_id'] = $this->propertie_id;
+        $array['array_id'] = $this->array_id;
+        $array['POST'] = $_POST;
+        $array['post_event'] = $this->isSometingPost();
+        $array['project_url'] = PROJECT_URL;
+        
+        $this->view->displayIndex($array);        
+    }        
+
+
+}

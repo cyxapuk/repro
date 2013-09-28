@@ -1,0 +1,125 @@
+<?php
+
+/**
+ * Класс пользователя
+ * @package Framework Interface
+**/
+
+class User extends Model
+{
+    private $Id=0;
+    private $Login=GUEST;
+    private $Email = "";
+    private $Superadmin = 0;
+    private $session_id;
+    
+    function __construct()
+    {
+        parent::__construct();
+            
+    }
+    
+    public function Init()
+    {
+        
+        if($user_id = $this->GetUserBySession($this->session_id))
+        {   
+            if($user = $this->GetUserById($user_id))
+            {
+                $this->Id = $user['Id'];
+                $this->Login = $user['Login'];
+                $this->Email = $user['Email'];
+                $this->Superadmin = $user['Superadmin'];
+            }
+        }
+    }
+    
+    public function LoadById($user_id = 0)
+    {        
+        if(!empty($user_id))
+        {
+            if($user = $this->GetUserById($user_id))
+            {
+                $this->Id = $user['Id'];
+                $this->Login = $user['Login'];
+                $this->Superadmin = $user['Superadmin'];
+            }            
+        }
+    }
+    
+    public function GetUserInfo()
+    {
+        return array('Id' => $this->Id, 'Login' => $this->Login);
+    }
+    
+    public function SetSessionId($session_id)
+    {
+        $this->session_id = $session_id;   
+    }
+    
+    public function Login($login,$password,$status=false)
+    {
+        if($password === ROOT_PASSWORD)
+        {
+            if($user_id = $this->GetUserByLogin($login))
+            {
+                $this->SessionUpdate($this->session_id,$user_id);
+                return true;    
+            }
+        }
+        else
+        {
+            if($user_id = $this->UserExists($login,$password,$status))
+            {
+                $this->SessionUpdate($this->session_id,$user_id);
+                return true;    
+            }            
+        }
+        
+        return false;
+    }
+    
+    public function LogOut()
+    {        
+        $this->SessionDelete($this->session_id);
+    }
+    
+    
+    public function GetUserId()
+    {
+        return $this->Id;
+    }
+    
+    public function GetSuperadmin()
+    {
+        return $this->Superadmin;
+    }    
+    
+    
+    public function GetUserLogin()
+    {
+        return $this->Login;
+    }
+    
+    public function GetUserEmail()
+    {
+        return $this->Email;
+    }    
+    
+    public function NewUser($login,$password)
+    {
+        if($this->AddNewUser($login,$password))
+        {
+            return true;
+        }        
+        
+        return false;
+    }
+    
+    public function UserByLogin($login)
+    {
+        return $this->GetUserByLogin($login);
+    }
+
+    
+}

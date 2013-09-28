@@ -1,0 +1,275 @@
+<?php
+
+/**
+ * Класс модели модуля "Каталог"
+ * @package Repro Interface
+**/
+
+class CatalogModel extends ReproModel
+{
+    public function __construct()
+    {
+        parent::__construct();
+    }
+    
+    public function getCatalog($catalog_id = 0)
+    {
+        if(empty($catalog_id))  return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog WHERE catalog_id = '" . $catalog_id . "'";
+        return $this->dbconn->GetOne($sql);
+    }    
+    
+    public function GetCatalogList()
+    {
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog";
+        return $this->dbconn->GetAll($sql);        
+    }
+    
+    public function GetCatalogPropertieList($catalog_id = 0, $propertie_parent_id = false)
+    {
+        if(isset($propertie_parent_id))
+        {
+            $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_category_propertie WHERE catalog_id = '" . $catalog_id . "' AND propertie_parent_id = '" . $propertie_parent_id . "'";    
+        }
+        else
+        {
+            $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_category_propertie WHERE catalog_id = '" . $catalog_id . "'";
+        }
+        
+        return $this->dbconn->GetAll($sql);        
+    }
+    
+    public function GetCatalogTypeList()
+    {
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_type WHERE type_active = '1'";
+        return $this->dbconn->GetAll($sql);        
+    }       
+    
+    /* Category */
+    
+    public function GetCategoryUniquePropertieList($catalog_id = 0)
+    {
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_category_propertie WHERE catalog_id = '" . $catalog_id . "' GROUP by propertie_title";
+        
+        return $this->dbconn->GetAll($sql);        
+    }
+
+    public function getCategory($catalog_id = 0, $category_id = 0)
+    {
+        if(empty($category_id))  return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_category WHERE catalog_id = '" . $catalog_id . "' AND category_id = '" . $category_id . "'";
+
+        return $this->dbconn->GetOne($sql);
+    }    
+    
+    public function GetCategoryList($catalog_id = 0, $category_id = 0)
+    {
+        if(!empty($category_id))
+        {
+            $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_category WHERE catalog_id = '" . $catalog_id . "' AND category_id = '" . $category_id . "' ORDER BY category_parent_id, category_sort";
+        }
+        else
+        {
+            $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_category WHERE catalog_id = '" . $catalog_id . "' ORDER BY category_parent_id, category_sort";    
+        }
+        
+        return $this->dbconn->GetAll($sql);        
+    }
+    
+    public function GetParentCategoryList($catalog_id = 0)
+    {
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_category WHERE catalog_id = '" . $catalog_id . "' AND category_parent_id = 0 ORDER BY category_sort";
+        return $this->dbconn->GetAll($sql);
+    }
+    
+    public function getCategoryChildrenList($catalog_id = 0, $category_id = 0)
+    {
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_category WHERE catalog_id = '" . $catalog_id . "' AND category_parent_id = '" . $category_id . "'";
+
+        return $this->dbconn->GetAll($sql);
+    }    
+    
+    public function getCategoryParent($catalog_id = 0, $category_id = 0)
+    {
+        if(empty($catalog_id)) return false;
+        
+        $sql = "SELECT category_parent_id FROM " . MYSQL_PROJECT . ".module_catalog_category WHERE catalog_id = '" . $catalog_id . "' AND category_id = '" . $category_id . "'";
+
+        return $this->dbconn->GetField($sql,'category_parent_id');
+    }    
+    
+    public function GetCategorySort($catalog_id = 0, $category_parent_id = 0)
+    {
+        $sql = "SELECT count(*) as CNT FROM " . MYSQL_PROJECT . ".module_catalog_category WHERE catalog_id = '" . $catalog_id . "' AND category_parent_id = '" . $category_parent_id . "'";
+
+        return $this->dbconn->GetField($sql,'CNT');        
+    }
+    
+    public function GetCategoryPropertie($catalog_id = 0, $propertie_id = 0)
+    {
+        if(empty($propertie_id))    return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_category_propertie WHERE catalog_id = '" . $catalog_id . "' AND propertie_id = '" . $propertie_id . "'";
+        
+        return $this->dbconn->GetOne($sql);
+    }
+    
+    public function GetCategoryPropertieList($catalog_id = 0, $category_id = 0)
+    {
+        if(empty($category_id)) return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_category_propertie WHERE catalog_id = '" . $catalog_id . "' AND category_id = '" . $category_id . "' ORDER by propertie_sort";
+        return $this->dbconn->GetAll($sql);        
+    }    
+    
+    public function GetCategoryPropertieSort($catalog_id = 0, $category_id = 0)
+    {
+        $sql = "SELECT count(*) as CNT FROM " . MYSQL_PROJECT . ".module_catalog_category_propertie WHERE catalog_id = '" . $catalog_id . "' AND category_id = '" . $category_id . "'";
+        
+        return $this->dbconn->GetField($sql,'CNT');        
+    }
+    
+    public function GetCategoryPropertieArray($array_id = 0)
+    {
+        if(empty($array_id))    return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_category_propertie_array WHERE array_id = '" . $array_id . "'";
+        
+        return $this->dbconn->GetOne($sql);
+    }     
+    
+    public function GetCategoryPropertieArrayList($propertie_id = 0)
+    {
+        if(empty($propertie_id))    return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_category_propertie_array WHERE propertie_id = '" . $propertie_id . "'";
+        
+        return $this->dbconn->GetAll($sql);
+    }
+    
+    public function GetCategoryArrayList()
+    {
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_category_propertie_array";
+        
+        return $this->dbconn->GetAll($sql);        
+    }
+    
+    public function GetCategoryPropertieValue($propertie_id = 0)
+    {
+        if(empty($propertie_id))    return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_category_propertie_value WHERE propertie_id = '" . $propertie_id . "'";
+        
+        return $this->dbconn->GetField($sql,'value_content');
+    }
+    
+    /* object */  
+
+    public function GetObjectUniquePropertieList($catalog_id = 0)
+    {
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_object_propertie WHERE catalog_id = '" . $catalog_id . "' GROUP by propertie_title";
+        
+        return $this->dbconn->GetAll($sql);        
+    }    
+           
+    
+    public function getObject($catalog_id = 0, $object_id = 0)
+    {
+        if(empty($object_id))  return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_object WHERE catalog_id = '" . $catalog_id . "' AND object_id = '" . $object_id . "'";
+
+        return $this->dbconn->GetOne($sql);
+    }    
+    
+    public function GetObjectList($catalog_id = 0, $category_id = 0)
+    {
+        if(empty($category_id)) return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_object WHERE catalog_id = '" . $catalog_id . "' AND category_id = '" . $category_id . "' ORDER BY object_sort";
+        
+        return $this->dbconn->GetAll($sql);        
+    }
+    
+    public function GetObjectSort($catalog_id = 0, $category_id = 0)
+    {
+        if(empty($category_id)) return false;
+        
+        $sql = "SELECT count(*) as CNT FROM " . MYSQL_PROJECT . ".module_catalog_object WHERE catalog_id = '" . $catalog_id . "' AND category_id = '" . $category_id . "'";
+
+        return $this->dbconn->GetField($sql,'CNT');        
+    }
+    
+    public function GetObjectPropertie($catalog_id = 0, $propertie_id = 0)
+    {
+        if(empty($propertie_id))    return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_object_propertie WHERE catalog_id = '" . $catalog_id . "' AND propertie_id = '" . $propertie_id . "'";
+        
+        return $this->dbconn->GetOne($sql);
+    }
+    
+    public function GetObjectPropertieList($catalog_id = 0, $category_id = 0)
+    {
+        if(empty($category_id)) return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_object_propertie WHERE catalog_id = '" . $catalog_id . "' AND category_id = '" . $category_id . "' ORDER by propertie_sort";
+        return $this->dbconn->GetAll($sql);        
+    }    
+    
+    public function GetObjectPropertieSort($catalog_id = 0, $category_id = 0)
+    {
+        if(empty($category_id)) return false;
+        
+        $sql = "SELECT count(*) as CNT FROM " . MYSQL_PROJECT . ".module_catalog_object_propertie WHERE catalog_id = '" . $catalog_id . "' AND category_id = '" . $category_id . "'";
+        
+        return $this->dbconn->GetField($sql,'CNT');        
+    }
+    
+    public function GetObjectPropertieArray($array_id = 0)
+    {
+        if(empty($array_id))    return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_object_propertie_array WHERE array_id = '" . $array_id . "'";
+        
+        return $this->dbconn->GetOne($sql);
+    }     
+    
+    public function GetObjectPropertieArrayList($propertie_id = 0)
+    {
+        if(empty($propertie_id))    return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_object_propertie_array WHERE propertie_id = '" . $propertie_id . "'";
+        
+        return $this->dbconn->GetAll($sql);
+    }
+    
+    public function GetObjectArrayList()
+    {
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_object_propertie_array";
+        
+        return $this->dbconn->GetAll($sql);        
+    }
+    
+    public function GetObjectPropertieValue($propertie_id = 0, $object_id = 0)
+    {
+        if(empty($propertie_id) || empty($object_id))    return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_object_propertie_value WHERE propertie_id = '" . $propertie_id . "' AND object_id = '" . $object_id . "'";
+        
+        return $this->dbconn->GetField($sql,'value_content');
+    }
+    
+    public function GetObjectValueList($object_id = 0)
+    {
+        if(empty($object_id))    return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".module_catalog_object_propertie_value WHERE object_id = '" . $object_id . "'";
+        
+        return $this->dbconn->GetAll($sql);
+    }        
+              
+    
+}

@@ -1,0 +1,123 @@
+<?php
+
+/**
+ * Класс сессий
+ * @package Framework Interface
+**/
+
+class Session extends Model
+{
+    public $session_id;
+    const SESSION_KEY = 'gtgtcLA3';
+    const SESSION_LIVE = '1 DAY';
+    
+    function __construct()
+    {
+        parent::__construct();
+        $this->Init();
+    }
+    
+    public function SaveVar($name,$value="")
+    {
+        $_SESSION[$name] = $value;
+    }
+    
+    public function DeleteVar($name)
+    {
+        unset($_SESSION[$name]);
+    }
+    
+    public function GetVar($name)
+    {
+        return !empty($_SESSION[$name])?$_SESSION[$name]:false;
+    }
+    
+    public function ExistsVar($value)
+    {
+        if(in_array($value,$this->GetVars())) return true;
+        
+        return false;
+    }
+    
+    public function GetVars()
+    {
+        return $_SESSION;
+    }
+    
+    public function ClearSessionVars($prefix="",$period=3)
+    {
+        $array = $this->GetVars();
+
+        foreach($array as $k=>$v)
+        {
+            if(!preg_match("/".$prefix."/si",$k))  continue;
+            
+            $time = str_replace($prefix,"",$k);
+            
+            if($time < (time()-$period*60))
+            {
+                $this->DeleteVar($k);
+            }        
+        }
+    }
+    
+    public function GetSessionId()
+    {
+        return $this->session_id;
+    }
+    
+    private function Init()
+    {
+        session_start();
+        $this->setSessionId();
+    }
+    
+    
+    private function SessionSet()
+    {
+       if($this->SessionExists($this->session_id))
+       {
+            $this->SessionUpdate($this->session_id);
+       }
+       else
+       {
+            $this->SessionSave($this->session_id);         
+       }
+                
+    }
+    
+    private function setSessionId()
+    {
+        $value = md5($_SERVER['HTTP_USER_AGENT'] . $_SERVER['REMOTE_ADDR'] . $_SERVER['HTTP_ACCEPT_CHARSET'] . self::SESSION_KEY);
+        $this->session_id = $value;
+        $this->SessionSet();        
+    }
+    
+
+    private function deleteOldSession()
+    {
+        $oldsessions = $this->getOldSession(self::SESSION_LIVE);
+        
+        if(!empty($oldsessions))
+        {
+            foreach($oldsessions as $old)
+            {
+                $this->SessionDelete($old['session_id']);
+            }
+        }
+        
+    }
+    
+    public function Destroy()
+    {
+        $this->deleteOldSession();
+        $this->SessionDelete($this->session_id);
+        session_destroy();
+    }
+    
+    function __destruct()
+    {
+        $this->ClearSessionVars("hash_key_",1);
+    }
+    
+}

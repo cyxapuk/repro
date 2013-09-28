@@ -1,0 +1,133 @@
+<?php
+
+/**
+ * Класс взаимодействия с базой данных
+ * @package Framework Interface
+**/
+
+class DataBase
+{
+	private $descriptor;
+	private $table_name = MYSQL_TABLE;
+	private $_database_name = MYSQL_DATABASE;
+	private $_host = MYSQL_HOST;
+	private $_user = MYSQL_USER;
+	private $_password = MYSQL_PASSWORD;
+    private $_debug = array();	
+	
+	public function __construct($host="",$user="",$password="",$db="",$table="")
+	{
+		if(!empty($host))
+        {
+            $this->_host = $host;
+        }
+        
+		if(!empty($user))
+        {
+            $this->_user = $user;
+        }
+        
+		if(!empty($password))
+        {
+            $this->_password = $password;
+        }
+        
+		if(!empty($db))
+        {
+            $this->_database_name = $db;
+        }
+        
+		if(!empty($table))
+        {
+            $this->table_name = $table;
+        }                                
+        
+        
+		$this->descriptor = 
+			mysql_pconnect($this->_host, $this->_user, $this->_password) or 
+						myError('Cant connect to database');
+						
+		if (!mysql_select_db($this->_database_name, $this->descriptor))
+		{
+			myError('Cant select database "'.$this->_database_name.'"!');
+		}
+        
+        $this->query("Set names utf8");
+        
+        return $this;	
+	}
+    
+    
+	private function query($query)
+	{
+		$res = mysql_query($query, $this->descriptor) or myError('Cant do: "'.$query.'" '.mysql_errno().': '.mysql_error());
+        
+        $this->debug[] = $query;
+
+        return $res;
+	}
+    
+    public function GetAll($query)
+    {
+        $array = array();
+        
+		$result = $this->query($query);	
+       
+        while ($row = mysql_fetch_assoc($result)) {
+            $array[] = $row;
+        }
+        mysql_free_result($result);
+        
+        return $array;
+                
+    }
+    
+    public function GetField($query, $field = "")
+    {
+        $array = array();
+        
+		$result = $this->query($query." LIMIT 1");	
+       
+        $row = mysql_fetch_assoc($result);
+        
+        return (!empty($row[$field]))   ?   $row[$field]    :   false;                
+    }    
+    
+    public function GetOne($query)
+    {
+        $array = array();
+        
+		$result = $this->query($query." LIMIT 1");	
+       
+        return (($row = mysql_fetch_assoc($result)) == true)?$row:false;
+                
+    }
+    
+    public function Execute($query)
+    {
+        $this->query($query);
+    }
+
+    public function getLastInsertId() 
+    {
+        return mysql_insert_id($this->descriptor);
+    }
+
+	
+    public function getDebug()
+    {
+        return $this->debug;
+    }
+    
+	function __destruct()
+	{
+		if (is_resource($this->descriptor))
+		{
+			mysql_close($this->descriptor);
+		}
+	}		
+}
+
+
+
+?>

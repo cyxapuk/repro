@@ -1,0 +1,139 @@
+<?php
+
+/**
+ * Класс отображения
+ * @package Framework Interface
+**/
+
+class View
+{
+    protected $smarty = false;
+    
+    
+    public function __construct()
+	{
+        $this->smarty = new Smarty;
+        $this->smarty->debugging = SMARTY_DEBUG;
+        $this->smarty->caching = SMARTY_CACHING;
+        $this->smarty->cache_lifetime = SMARTY_CACHE_LIFETIME;   
+        
+        $this->smarty->template_dir = TPL_PATH . 'templates/';
+        $this->smarty->compile_dir = TPL_PATH . 'templates_c/';
+        $this->smarty->config_dir = TPL_PATH . 'config/';
+        $this->smarty->cache_dir = TPL_PATH . 'cache/';
+        $this->smarty->debug_tpl = TPL_PATH . 'debug/debug.tpl';
+        
+        $this->smarty->assign('SITE_URL', SITE_URL);
+        $this->smarty->assign('_FILES_URL', _FILES_URL);
+        $this->smarty->assign('_LIBS_URL', _LIBS_URL);
+        $this->smarty->assign('IMAGES_URL', IMAGES_URL);
+        $this->smarty->assign('RND', time());
+        
+        try
+        {
+            $this->makePath($this->smarty->compile_dir);            
+        }
+        catch(Exception $e)
+        {
+            die($e->getMessage() . "\n");
+        }
+        
+        try
+        {
+            $this->makePath($this->smarty->cache_dir);            
+        }
+        catch(Exception $e)
+        {
+            die($e->getMessage() . "\n");
+        }        
+        
+    }
+    
+    private function makePath($path="")
+    {
+        if(!file_exists($path))	
+        {        
+            $old = umask(0);
+            if(@mkdir($path,0777))
+            {
+                umask($old);
+                return true;    
+            }            
+            throw new RuntimeException("Cant make " . $path);             
+        }        
+        
+    }
+    
+    public function displayArray2d($array=array(),$name='array')
+    {
+        if(empty($array))   return $array;
+        
+        foreach($array['name'] as $k=>$v)
+        {
+            if(!empty($array['value'][$k]))
+            {
+                $temp[$v] = $array['value'][$k];
+            }
+        }
+        
+        if(!empty($name))
+        {
+            $this->smarty->assign($name,$temp);    
+        }
+        
+        return $temp;
+    }
+    
+    public function displayIndex($array=array(),$name='array')
+    {
+        if(empty($array))   return false;
+        
+        foreach($array as $key => $value)
+        {           
+            if(is_array($value))
+            {
+                $this->smarty->assign($key,$value);
+                
+                foreach($value as $k => $v)
+                {
+                    $this->smarty->assign($k,$v);
+                }                
+            }
+            else
+            {
+                $this->smarty->assign($key,$value);
+            }
+            
+        }
+        
+        $this->smarty->assign($name,$array);
+                
+        $this->display($array['target']);
+        
+    }
+    
+    
+    public function display($target="")
+    {
+        if(empty($target))  return false;
+        
+        $this->smarty->display($target); 
+    } 
+    
+    
+    public function displayError($name="", $value="")
+    {
+        if(empty($name))   return false;
+        
+        if(!empty($value))
+        {
+            $this->smarty->assign($name, $value);   
+        }
+        else
+        {
+            $this->smarty->assign($name, true);   
+        }
+    }
+    
+    
+}

@@ -1,0 +1,525 @@
+<?php
+
+/**
+ * Класс контроллера
+ * @package Repro Interface
+**/
+
+class ReproController extends Controller
+{
+    protected $model = false;
+    protected $view = false;    
+    protected $template = false;
+    protected $session = false;
+    protected $user = false;        
+    
+    public function __construct()
+	{
+        parent::__construct();   
+        $this->__prepare();    
+    }
+    
+    private function __prepare()
+    {
+        Fabrika::addTools('ReproModel', array(), 'ReproModel');
+        $this->model = Fabrika::getTools('ReproModel');
+        
+        Fabrika::addTools('ReproView', array(), 'ReproView');
+        $this->view = Fabrika::getTools('ReproView');        
+    }
+    
+    function displayMenu($target="")
+    {
+        $_menu_id    = $this->clearDigit( $this->gvar('_menu_id') );
+        
+        if(!empty($_menu_id))
+        {
+            $this->model->Delete(MYSQL_PROJECT . ".system_menu"," where Id = '" . $_menu_id . "'");
+            $this->model->Delete(MYSQL_PROJECT . ".system_menu_page"," where MenuId = '" . $_menu_id . "'");
+            $this->Redirect('menu.php');
+        }
+            
+        $array = array
+        (
+            'menulist' => $this->model->GetMenuList(),
+            'target' => $target,
+            'errors' => $errors           
+        );  
+        
+        $this->displayThread($array);
+        
+    }    
+    
+    public function displayMenuForm($target="")
+    {        
+        $menu_id    = $this->clearDigit($this->gvar('menu_id'));
+        $menu_page_id    = $this->clearDigit($this->gvar('menu_page_id'));
+        $__move_menu_page_id    = $this->clearDigit( $this->gvar('__move_menu_page_id') );
+        
+        if(!empty($menu_page_id) && !empty($__move_menu_page_id))
+        {
+            $page = $this->model->getMenuPage($menu_id, $menu_page_id);
+            $movepage = $this->model->getMenuPage($menu_id, $__move_menu_page_id);
+            
+            if(!empty($page) && !empty($movepage))
+            {
+                $this->model->Update(array('Sort'=>$movepage['Sort']),MYSQL_PROJECT . ".system_menu_page"," where MenuId=" . $menu_id . " AND PageId=" . $menu_page_id);
+                $this->model->Update(array('Sort'=>$page['Sort']),MYSQL_PROJECT . ".system_menu_page"," where MenuId=" . $menu_id . " AND PageId=" . $__move_menu_page_id);
+                $this->Redirect('menu_form.php?menu_id=' . $menu_id);
+            }
+        }        
+        
+        
+        if($this->isSometingPost())
+        {   
+            $array = array(
+                'Name'=>$this->clearStr($this->gvar('Name')),
+            );            
+            
+            $errors = $this->GetErrors(array('Name'));
+            
+            if(empty($errors))
+            {
+                if($this->model->IsExists(MYSQL_PROJECT . ".system_menu"," WHERE Id=" . $menu_id))
+                {
+                    $this->model->Update($array,MYSQL_PROJECT . ".system_menu"," where Id=" . $menu_id);
+                }
+                else
+                {
+                    if(!$this->model->IsExists(MYSQL_PROJECT . ".system_menu"," WHERE Name = '" . $array['Name'] . "'"))
+                    {
+                        $menu_id = $this->model->Insert($array,MYSQL_PROJECT . ".system_menu");    
+                    }
+                    else
+                    {
+                        $errors["Name" . "_error"] = true;
+                    }   
+                }
+                
+                if(!empty($menu_page_id))
+                {
+                    $array = array
+                    (
+                        'MenuId'=>$menu_id,
+                        'PageId'=>$menu_page_id,
+                        'Sort'=>($this->model->GetMenuPageSort($menu_id)+1)
+                    );
+                    
+                    $this->model->Delete(MYSQL_PROJECT . ".system_menu_page"," where MenuId = '" . $menu_id . "' AND PageId = '" . $menu_page_id . "'");
+                    $this->model->Insert($array,MYSQL_PROJECT . ".system_menu_page");
+                }
+                
+                
+                if($this->gvar('b1') && empty($errors))
+                {
+                    $this->Redirect('menu.php');
+                }               
+            }
+        }        
+        
+        $array = array
+        (
+            'menu_id' => $menu_id,
+            'menu' => $this->model->getMenu($menu_id),
+            'pagelist' => $this->getList2d($this->model->GetPageList(),'Id','Name'),
+            'menupagelist' => $this->model->getMenuPageList($menu_id),
+            'target' => $target,
+            'errors' => $errors,
+            'POST' => $_POST,
+            'post_event' => $this->isSometingPost()            
+        );  
+        
+        $this->displayThread($array);
+    }    
+    
+    function displayUser($target="")
+    {
+        $_user_id   = $this->clearDigit( $this->gvar('_user_id') );
+        
+        
+        if(!empty($_user_id))
+        {
+            $this->model->Delete(MYSQL_PROJECT . ".system_user"," where Id = '" . $_user_id . "'");
+            $this->Redirect('user.php');
+        }
+        
+        $array = array
+        (
+            'userlist' => $this->model->GetUserList(),
+            'target' => $target,
+            'errors' => $errors           
+        );  
+        
+        $this->displayThread($array);
+        
+    } 
+    
+    public function displayUserForm($target="")
+    {        
+        $user_id    = $this->clearDigit($this->gvar('user_id'));
+        
+        if($this->isSometingPost())
+        {   
+            $array = array(
+                'Login'=>$this->clearStr($this->gvar('Login')),
+                'Password'=>$this->clearStr($this->gvar('Password')),
+                'Status'=>$this->clearDigit($this->gvar('Status')),
+                'Email'=>$this->clearStr($this->gvar('Email')),
+            );            
+            
+            $errors = $this->GetErrors(array('Login'));
+            
+            if(empty($array['Password']))
+            {
+                unset($array['Password']);
+            }
+            
+            if($array['Password'] != $this->clearStr($this->gvar('Password2')))
+            {
+                $errors["Password_error"] = true;   
+                $errors["Password2_error"] = true;
+            }
+            
+            if(empty($errors))
+            {
+                if($this->model->IsExists(MYSQL_PROJECT . ".system_user"," WHERE Id=" . $user_id))
+                {
+                    $this->model->Update($array,MYSQL_PROJECT . ".system_user"," where Id=" . $user_id);
+                }
+                else
+                {
+                    if(!$this->model->IsExists(MYSQL_PROJECT . ".system_user"," WHERE Login = '" . $array['Login'] . "'"))
+                    {
+                        $user_id = $this->model->Insert($array,MYSQL_PROJECT . ".system_user");    
+                    }
+                    else
+                    {
+                        $errors["Login_error"] = true;
+                    }   
+                }
+                
+                if($this->gvar('b1') && empty($errors))
+                {
+                    $this->Redirect('user.php');
+                }               
+            }
+        }        
+        
+        $array = array
+        (
+            'user_id' => $user_id,
+            'user' => $this->model->getUser($user_id),
+            'target' => $target,
+            'errors' => $errors,
+            'POST' => $_POST,
+            'post_event' => $this->isSometingPost()            
+        );  
+        
+        $this->displayThread($array);
+    }    
+       
+    
+    public function displayPageForm($target="")
+    {        
+        $page_id    = $this->clearDigit($this->gvar('page_id'));
+        
+        if($this->isSometingPost())
+        {   
+            $array = array(
+                'Name'=>$this->clearStr($this->gvar('Name')),
+                'Meta'=>$this->clearStr($this->gvar('Meta')),
+                'Alias'=>$this->clearStr($this->gvar('Alias')),
+                'Link'=>$this->clearStr($this->gvar('Link')),
+                'NameML'=>serialize($_POST['NameML']),
+                'Status'=>$this->clearDigit($this->gvar('Status')),                
+                'ParentId'=>$this->clearDigit($this->gvar('ParentId')),
+                'TemplateId'=>$this->clearDigit($this->gvar('TemplateId')),                
+            );            
+            
+            $errors = $this->GetErrors(array('Name'));
+            
+            if(empty($errors))
+            {
+                if($this->model->IsExists(MYSQL_PROJECT . ".system_page"," WHERE Id=" . $page_id))
+                {
+                    $this->model->Update($array,MYSQL_PROJECT . ".system_page"," where Id=" . $page_id);
+                }
+                else
+                {
+                    if(!$this->model->IsExists(MYSQL_PROJECT . ".system_page"," WHERE Name = '" . $array['Name'] . "' OR Alias = '" . $array['Alias'] . "'"))
+                    {
+                        $array['Sort'] = ($this->model->GetPageSort() + 1);
+                        $page_id = $this->model->Insert($array,MYSQL_PROJECT . ".system_page");    
+                    }
+                    else
+                    {
+                        $errors["Name" . "_error"] = true;
+                        $errors["Alias" . "_error"] = true;
+                    }   
+                }
+                
+                if($this->gvar('b1') && empty($errors))
+                {
+                    $this->Redirect('page.php');
+                }               
+            }
+        }        
+        
+        $page = $this->model->getPage($page_id);
+        
+        if(!empty($page))
+        {
+            $page['NameML'] = (!empty($page['NameML'])) ?   unserialize($page['NameML'])    :   array();
+        }        
+        
+        $array = array
+        (
+            'page_id' => $page_id,
+            'page' => $page,
+            'nameML' => $this->getList2dFrom3d($page['NameML']),
+            'languagelist' => $this->model->GetLanguageList(),            
+            'templatelist' => $this->model->GetTemplateList(),
+            'target' => $target,
+            'errors' => $errors,
+            'POST' => $_POST,
+            'post_event' => $this->isSometingPost()            
+        );  
+        
+        $this->displayThread($array);
+    }    
+    
+    function displayPage($target="")
+    {
+        $page_id    = $this->clearDigit( $this->gvar('page_id') );
+        $_page_id   = $this->clearDigit( $this->gvar('_page_id') );
+        $__move_page_id    = $this->clearDigit( $this->gvar('__move_page_id') );
+        
+        
+        if(!empty($_page_id))
+        {
+            $this->model->Delete(MYSQL_PROJECT . ".system_page"," where Id = '" . $_page_id . "'");
+            $this->Redirect('page.php');
+        }
+        
+        if(!empty($page_id) && !empty($__move_page_id))
+        {
+            $page = $this->model->getPage($page_id);
+            $movepage = $this->model->getPage($__move_page_id);
+            
+            if(!empty($page) && !empty($movepage))
+            {
+                $this->model->Update(array('Sort'=>$movepage['Sort']),MYSQL_PROJECT . ".system_page"," where Id=" . $page_id);
+                $this->model->Update(array('Sort'=>$page['Sort']),MYSQL_PROJECT . ".system_page"," where Id=" . $__move_page_id);
+                $this->Redirect('page.php');
+            }
+        }
+            
+        $array = array
+        (
+            'pagelist' => $this->model->GetPageList(),
+            'templatelist' => $this->getList2d($this->model->GetTemplateList()),
+            'target' => $target,
+            'errors' => $errors           
+        );  
+        
+        $this->displayThread($array);
+        
+    }   
+    
+    function displayTemplate($target="")
+    {
+        $_template_id    = $this->clearDigit( $this->gvar('_template_id') );
+        
+        if(!empty($_template_id))
+        {
+            $this->model->Delete(MYSQL_PROJECT . ".system_template"," where Id = '" . $_template_id . "'");
+            $this->Redirect('template.php');
+        }
+            
+        $array = array
+        (
+            'templatelist' => $this->model->GetTemplateList(),
+            'target' => $target,
+            'errors' => $errors           
+        );  
+        
+        $this->displayThread($array);
+        
+    }
+     
+     
+    public function displayTemplateForm($target="")
+    {        
+        $template_id    = $this->clearDigit($this->gvar('template_id'));
+        
+        if($this->isSometingPost())
+        {   
+            $array = array(
+                'Name'=>$this->clearStr($this->gvar('Name')),
+                'Path'=>$this->clearStr($this->gvar('Path'))
+            );            
+            
+            $errors = $this->GetErrors(array('Name','Path'));
+            
+            if(empty($errors))
+            {
+                if($this->model->IsExists(MYSQL_PROJECT . ".system_template"," WHERE Id=" . $template_id))
+                {
+                    $this->model->Update($array,MYSQL_PROJECT . ".system_template"," where Id=" . $template_id);
+                }
+                else
+                {
+                    if(!$this->model->IsExists(MYSQL_PROJECT . ".system_template"," WHERE Name = '" . $array['Name'] . "' OR Path = '" . $array['Path'] . "'"))
+                    {
+                        $template_id = $this->model->Insert($array,MYSQL_PROJECT . ".system_template");    
+                    }
+                    else
+                    {
+                        $errors["Name" . "_error"] = true;
+                        $errors["Path" . "_error"] = true;
+                    }   
+                }
+                
+                if($this->gvar('b1') && empty($errors))
+                {
+                    $this->Redirect('template.php');
+                }               
+            }
+        }        
+        
+        $array = array
+        (
+            'template_id' => $template_id,
+            'template' => $this->model->getTemplate($template_id),
+            'target' => $target,
+            'errors' => $errors,
+            'POST' => $_POST,
+            'post_event' => $this->isSometingPost()            
+        );  
+        
+        $this->displayThread($array);
+    }     
+    
+    function displayLanguage($target="")
+    {
+        $_language_id    = $this->clearDigit( $this->gvar('_language_id') );
+        
+        if(!empty($_language_id))
+        {
+            $this->model->Delete(MYSQL_PROJECT . ".system_language"," where Id = '" . $_language_id . "'");
+            $this->Redirect('language.php');
+        }
+            
+        $array = array
+        (
+            'languagelist' => $this->model->GetLanguageList(),
+            'target' => $target,
+            'errors' => $errors           
+        );  
+        
+        $this->displayThread($array);
+        
+    }    
+    
+    
+    public function displayLanguageForm($target="")
+    {        
+        $language_id    = $this->clearDigit($this->gvar('language_id'));
+        
+        if($this->isSometingPost())
+        {   
+            $array = array(
+                'Name'=>$this->clearStr($this->gvar('Name')),
+                'Abr'=>$this->clearStr($this->gvar('Abr')),
+                'Status'=>$this->clearDigit($this->gvar('Status'))
+            );            
+            
+            $errors = $this->GetErrors(array('Name','Abr'));
+            
+            if(empty($errors))
+            {
+                if($this->model->IsExists(MYSQL_PROJECT . ".system_language"," WHERE Id=" . $language_id))
+                {
+                    $this->model->Update($array,MYSQL_PROJECT . ".system_language"," where Id=" . $language_id);
+                }
+                else
+                {
+                    if(!$this->model->IsExists(MYSQL_PROJECT . ".system_language"," WHERE Name = '" . $array['Name'] . "' OR Abr = '" . $array['Abr'] . "'"))
+                    {
+                        $language_id = $this->model->Insert($array,MYSQL_PROJECT . ".system_language");    
+                    }
+                    else
+                    {
+                        $errors["Name" . "_error"] = true;
+                        $errors["Abr" . "_error"] = true;
+                    }   
+                }
+                
+                if($this->gvar('b1') && empty($errors))
+                {
+                    $this->Redirect('language.php');
+                }               
+            }
+        }        
+        
+        $array = array
+        (
+            'language_id' => $language_id,
+            'language' => $this->model->getLanguage($language_id),
+            'target' => $target,
+            'errors' => $errors,
+            'POST' => $_POST,
+            'post_event' => $this->isSometingPost()            
+        );  
+        
+        $this->displayThread($array);
+    }     
+    
+
+    public function displaySite($target="")
+    {        
+        if($this->isSometingPost())
+        {   
+            $array = array(
+                'Name'=>$this->clearStr($this->gvar('Name')),
+                'Meta'=>$this->clearStr($this->gvar('Meta')),
+                'Email'=>$this->clearStr($this->gvar('Email')),
+                'PageId'=>$this->clearDigit($this->gvar('PageId')),
+                'LangId'=>$this->clearDigit($this->gvar('LangId')),
+                'Alias'=>$this->clearDigit($this->gvar('Alias')),
+                'Status'=>$this->clearDigit($this->gvar('Status')),
+                'NameML'=>serialize($_POST['NameML']),
+            );            
+            
+            $errors = $this->GetErrors(array('Name'));
+            
+            if(empty($errors))
+            {
+                $this->model->Delete(MYSQL_PROJECT . ".system_site");
+                $this->model->Insert($array,MYSQL_PROJECT . ".system_site");
+            }
+        }        
+        
+        $site = $this->model->getSite();
+        
+        if(!empty($site))
+        {
+            $site['NameML'] = (!empty($site['NameML'])) ?   unserialize($site['NameML'])    :   array();
+        }
+        
+        $array = array
+        (
+            'site' => $site,
+            'nameML' => $this->getList2dFrom3d($site['NameML']),
+            'languagelist' => $this->model->GetLanguageList(),
+            'pagelist' => $this->model->GetPageList(),
+            'target' => $target,
+            'errors' => $errors,
+            'POST' => $_POST,
+            'post_event' => $this->isSometingPost()            
+        );  
+        
+        $this->displayThread($array);
+    }        
+    
+}

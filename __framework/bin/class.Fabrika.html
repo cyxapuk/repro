@@ -1,0 +1,42 @@
+<?php
+
+/**
+ * Класс "фабрика" для реализации одноименного шаблона проектирования
+ * @package Framework Interface
+**/
+
+class Fabrika
+{
+    static $aTools = array();
+
+    public static function addTools($sName, $aParams = array(), $sClass = '') {
+
+        if (!isset(self::$aTools[$sName])) {
+            if ($sClass == '')
+                $sClass = $sName;
+
+            self::$aTools[$sName] = new $sClass($aParams);
+        }
+
+        return self::getTools($sName);
+    }
+
+    public static function getTools($sName) {
+
+        if (isset(self::$aTools[$sName])) {
+            return self::$aTools[$sName];
+        }
+        return null;
+    }
+
+    public static function delTools($sName) {
+
+        if (isset(self::$aTools[$sName])) {
+            unset(self::$aTools[$sName]);
+        }
+    }
+       
+}
+
+
+?>

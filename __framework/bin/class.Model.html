@@ -1,0 +1,239 @@
+<?php
+
+/**
+ * Класс модели
+ * @package Framework Interface
+**/
+
+class Model
+{
+    protected $dbconn = false;
+  
+    public function __construct()
+	{
+        Fabrika::addTools('dbconn', array(), 'Database');
+        $this->dbconn = Fabrika::getTools('dbconn');
+
+    }
+    
+    /* SESSION */
+
+    protected function getOldSession($live='1 DAY')
+    {
+        $sql = "SELECT session_id, (NOW() - INTERVAL " . $live . ") AS timenow, session_last AS timelast FROM system_session HAVING timenow > timelast";
+        return $this->dbconn->GetAll($sql);
+    }    
+    
+    protected function SessionSave($session_id)
+    {
+        $sql = "INSERT INTO " . MYSQL_PROJECT . ".system_session SET session_id='".mysql_escape_string($session_id)."', user_id='0', session_start=now(),session_last=now()";
+        $this->dbconn->Execute($sql);        
+    }    
+	
+    protected function SessionExists($session_id)
+    {
+        $sql = "SELECT session_id FROM " . MYSQL_PROJECT . ".system_session WHERE session_id='".mysql_escape_string($session_id)."'";
+        return $this->dbconn->GetOne($sql);
+    }
+    
+    protected function SessionUpdate($session_id,$user_id=0)
+    {
+        if(!empty($user_id))
+        {
+            $sql = "UPDATE " . MYSQL_PROJECT . ".system_session SET session_last=now(),user_id='".intval($user_id)."' WHERE session_id='".mysql_escape_string($session_id)."'";
+            $this->dbconn->Execute($sql);            
+        }
+        else
+        {
+            $sql = "UPDATE " . MYSQL_PROJECT . ".system_session SET session_last=now() WHERE session_id='".mysql_escape_string($session_id)."'";            
+            $this->dbconn->Execute($sql);            
+        }
+
+    }
+    
+    protected function SessionDelete($session_id)
+    {
+        $sql = "DELETE FROM " . MYSQL_PROJECT . ".system_session WHERE session_id='".mysql_escape_string($session_id)."'";
+        $this->dbconn->Execute($sql);        
+    }
+    
+    
+    public function GetSessionById($session_id)
+    {
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".system_session WHERE session_id='".mysql_escape_string($session_id)."'";
+        $this->dbconn->Execute($sql);        
+    }
+
+    /* USER */
+    
+        
+    public function GetUserList($Status = 0, $Like = "")
+    {
+        if(!empty($Status) && !empty($Like))
+        {
+            return $this->dbconn->GetAll("SELECT * from " . MYSQL_PROJECT . ".system_user WHERE Status = '" . intval($Status) . "' AND Login LIKE '%" . mysql_escape_string($Like) . "%'");
+        }
+        elseif(!empty($Status))
+        {
+            return $this->dbconn->GetAll("SELECT * from " . MYSQL_PROJECT . ".system_user WHERE Status = '" . intval($Status) . "'");
+        }
+        if(!empty($Like))
+        {
+            return $this->dbconn->GetAll("SELECT * from " . MYSQL_PROJECT . ".system_user WHERE Login LIKE '%" . mysql_escape_string($Like) . "%'");
+        }
+        else
+        {
+            return $this->dbconn->GetAll("SELECT * from " . MYSQL_PROJECT . ".system_user");            
+        }        
+    }    
+    
+    public function GetUser($user_id=0)
+    {
+        if(empty($user_id)) return false;
+        
+        return $this->dbconn->GetOne("SELECT * from " . MYSQL_PROJECT . ".system_user WHERE Id=".intval($user_id));
+    }        
+        
+    protected function UserExists($login,$password,$status = false)
+    {        
+        if($status)
+        {
+            $sql = "SELECT Id FROM " . MYSQL_PROJECT . ".system_user WHERE Login='".mysql_escape_string($login)."' AND Password='".mysql_escape_string($password)."' AND status = 1";            
+        }
+        else
+        {
+            $sql = "SELECT Id FROM " . MYSQL_PROJECT . ".system_user WHERE Login='".mysql_escape_string($login)."' AND Password='".mysql_escape_string($password)."'";            
+        }        
+        
+        $res = $this->dbconn->GetOne($sql);
+        return !empty($res['Id'])?$res['Id']:0;
+    }
+    
+    protected function GetUserBySession($session_id)
+    {
+        $sql = "SELECT user_id FROM " . MYSQL_PROJECT . ".system_session WHERE session_id='".mysql_escape_string($session_id)."'";
+        $res = $this->dbconn->GetOne($sql);
+        return !empty($res['user_id'])?$res['user_id']:0;        
+    }
+    
+    protected function GetUserByLogin($login)
+    {
+        $sql = "SELECT Id FROM " . MYSQL_PROJECT . ".system_user WHERE Login='".mysql_escape_string($login)."'";
+        $res = $this->dbconn->GetOne($sql);
+        return !empty($res['Id'])?$res['Id']:0;        
+    }    
+    
+    public function GetUserById($user_id)
+    {
+        $sql = "SELECT * from " . MYSQL_PROJECT . ".system_user WHERE Id='".intval($user_id)."'";
+        return $this->dbconn->GetOne($sql);
+    }
+    
+    protected function AddNewUser($login,$password)
+    {
+        $sql = "INSERT INTO " . MYSQL_PROJECT . ".system_user SET Login='".mysql_escape_string($login)."', Password='".mysql_escape_string($password)."'";        
+        $this->dbconn->Execute($sql);        
+        return $this->dbconn->getLastInsertId();         
+        
+    }
+    
+    public function GetUsers()
+    {
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".system_user ORDER by user_id ASC";        
+        return $this->dbconn->GetAll($sql);         
+        
+    }    
+    
+    /* General */
+    
+    public function GetDebug()
+    {
+        return $this->dbconn->getDebug();
+    }    
+
+    public function IsExists($table='',$exp='')
+    {
+        if(empty($table) || empty($exp))   return false;
+        
+        return $this->dbconn->GetOne("SELECT * FROM ".$table.$exp);
+        
+    }
+    
+    public function CountRows($table='',$exp='')
+    {
+        if(empty($table) || empty($exp))   return false;
+        
+        $r = $this->dbconn->GetOne("SELECT count(*) as CNT FROM ".$table.$exp);
+        
+        return $r['CNT'];
+        
+    }    
+    
+    public function Delete($tablename="",$exp='')
+    {
+        $sql = "DELETE FROM ".$tablename.$exp;
+        $this->dbconn->Execute($sql);        
+    }
+    
+    public function Insert($array=array(),$tablename="")
+    {
+        if(empty($array)    ||  empty($tablename))
+        {
+            return false;
+        }
+        
+        $fields = array();
+        foreach($array as $_k=>$_v)
+        {
+            $fields[] = $_k."='".mysql_escape_string($_v)."'";
+        }
+        
+        $sql = "INSERT INTO ".$tablename." SET ".join(",",$fields);
+        $this->dbconn->Execute($sql);
+        
+        return $this->dbconn->getLastInsertId();
+    } 
+    
+   
+    public function Update($array=array(),$tablename="",$exp='')
+    {
+        if(empty($array)    ||  empty($tablename))
+        {
+            return false;
+        }
+        
+        $fields = array();
+        foreach($array as $_k=>$_v)
+        {
+            $fields[] = $_k."='".mysql_escape_string($_v)."'";
+        }
+        
+        $sql = "UPDATE ".$tablename." SET ".join(",",$fields).$exp;
+        $this->dbconn->Execute($sql);
+        
+    }
+    
+    public function GetField($field="",$tablename="",$where="")
+    {
+        if(empty($field) || empty($tablename)) return false;
+        
+        $where = (!empty($where))   ?   " WHERE " . $where : "";
+        
+        $sql = "SELECT " . $field . " FROM " . $tablename. $where;
+        
+        return $this->dbconn->GetOne($sql);
+        
+    }    
+    
+    public function RowExists($field="",$value="",$tablename="")
+    {
+        if(empty($field) || empty($value) || empty($tablename)) return false;
+        
+        $sql = "SELECT ".$field." FROM ".$tablename." WHERE ".$field."='".mysql_escape_string($value)."'";
+        $res = $this->dbconn->GetOne($sql);
+        return !empty($res[$field])?$res[$field]:false;
+    }           
+  
+}
+
+?>

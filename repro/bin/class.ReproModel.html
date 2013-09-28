@@ -1,0 +1,123 @@
+<?php
+
+/**
+ * Класс модели
+ * @package Repro Interface
+**/
+
+class ReproModel extends Model
+{
+    public function __construct()
+    {
+        parent::__construct();
+    }
+    
+    public function getSite()
+    {
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".system_site";
+        return $this->dbconn->GetOne($sql);
+    }
+    
+    public function getUser($Id = 0)
+    {
+        if(empty($Id))  return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".system_user WHERE Id = '" . $Id . "' AND Superadmin = 0";
+        return $this->dbconn->GetOne($sql);
+    }    
+    
+    public function GetUserList()
+    {
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".system_user WHERE Superadmin = 0 ORDER by Id";
+        return $this->dbconn->GetAll($sql);        
+    }    
+    
+    public function getPage($Id = 0)
+    {
+        if(empty($Id))  return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".system_page WHERE Id = '" . $Id . "'";
+        return $this->dbconn->GetOne($sql);
+    }    
+    
+    public function GetPageList()
+    {
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".system_page ORDER by Sort";
+        return $this->dbconn->GetAll($sql);        
+    }
+    
+    public function GetPageSort()
+    {
+        $sql = "SELECT count(*) as CNT FROM " . MYSQL_PROJECT . ".system_page";
+
+        return $this->dbconn->GetField($sql,'CNT');        
+    }        
+    
+    public function GetMenuList()
+    {
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".system_menu ORDER by Id ASC";
+        return $this->dbconn->GetAll($sql);        
+    }
+    
+    public function getMenu($Id = 0)
+    {
+        if(empty($Id))  return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".system_menu WHERE Id = '" . $Id . "'";
+        return $this->dbconn->GetOne($sql);
+    }
+    
+    public function getMenuPage($MenuId = 0, $PageId = 0)
+    {
+        if(empty($MenuId) || empty($PageId))    return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".system_menu_page WHERE MenuId = '" . $MenuId . "' AND PageId = '" . $PageId . "'";
+        return $this->dbconn->GetOne($sql);
+    }      
+    
+    public function getMenuPageList($MenuId = 0)
+    {
+        if(empty($MenuId))  return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".system_menu_page WHERE MenuId = '" . $MenuId . "' ORDER BY Sort";
+        return $this->dbconn->GetAll($sql);
+    }   
+    
+    public function GetMenuPageSort($MenuId=0)
+    {
+        if(empty($MenuId))  return false;
+        
+        $sql = "SELECT count(*) as CNT FROM " . MYSQL_PROJECT . ".system_menu_page WHERE MenuId = '" . $MenuId . "'";
+
+        return $this->dbconn->GetField($sql,'CNT');        
+    }           
+    
+    public function getLanguage($Id = 0)
+    {
+        if(empty($Id))  return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".system_language WHERE Id = '" . $Id . "'";
+        return $this->dbconn->GetOne($sql);
+    }    
+    
+    public function GetLanguageList()
+    {
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".system_language";
+        return $this->dbconn->GetAll($sql);        
+    }
+    
+    public function GetTemplateList()
+    {
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".system_template ORDER by Id ASC";
+        return $this->dbconn->GetAll($sql);        
+    }
+    
+    public function getTemplate($Id = 0)
+    {
+        if(empty($Id))  return false;
+        
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".system_template WHERE Id = '" . $Id . "'";
+        return $this->dbconn->GetOne($sql);
+    }    
+    
+}
