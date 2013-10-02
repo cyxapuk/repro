@@ -393,6 +393,8 @@ class CatalogController extends ReproController
     
     public function displayObjectForm($target="")
     {        
+        $site = $this->model->getSite();
+        
         $_propertie_id    = $this->clearDigit( $this->gvar('_propertie_id') );
         
         if(!empty($_propertie_id))
@@ -465,12 +467,20 @@ class CatalogController extends ReproController
         
         if(!empty($propertielist))
         {
-            array_debug($propertielist);
-            exit;
-            
             foreach($propertielist as $key=>$propertie)
-            {
-                $propertielist[$key]['propertie_value'] = $this->model->GetObjectPropertieValue($propertie['propertie_id'],$this->object_id);
+            {                
+                switch($propertie['type_id'])
+                {
+                    case '1':   //text
+                    case '2':   //tetxarea                
+                    case '4':   //wysiwyg
+                        $values = unserialize($this->model->GetObjectPropertieValue($propertie['propertie_id'],$this->object_id));
+                        $propertielist[$key]['propertie_value'] = (!empty($values[$site['LangId']]))    ?   $values[$site['LangId']]    :   "";
+                        break;
+                    default:                
+                        $propertielist[$key]['propertie_value'] = $this->model->GetObjectPropertieValue($propertie['propertie_id'],$this->object_id);
+                        break;
+                }
             }
         }
         
