@@ -1228,6 +1228,10 @@ class CatalogController extends ReproController
                         'value_content' => serialize(array($site['LangId'] => $value)),
                         'object_id' => $object_id
                     );
+                    
+                    array_debug($array);
+                    exit;
+                    
                     break;
                 case '5':
                     //image
