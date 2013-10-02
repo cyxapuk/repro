@@ -1182,6 +1182,8 @@ class CatalogController extends ReproController
     {
         global $errors;
         
+        $site = $this->model->getSite();
+        
         if(empty($propertielist) || empty($object_id))
         {
             return false;
@@ -1214,6 +1216,7 @@ class CatalogController extends ReproController
                         'object_id' => $object_id
                     );
                     
+                    var_dump($site);
                     var_dump($array);
                     exit;
                                         
