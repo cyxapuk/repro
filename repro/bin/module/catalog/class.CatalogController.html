@@ -1235,15 +1235,14 @@ class CatalogController extends ReproController
                         $value = htmlspecialchars( (string)$value );                        
                     }
                     
-                    echo ">" . $value . "<br />";
-                    array_debug($values);
-                    exit;                    
-                    
                     $array = array(
                         'propertie_id' => $propertie_id,
                         'value_content' => serialize($values[$site['LangId']] = $value),
                         'object_id' => $object_id
                     );
+                    
+                    array_debug($array);
+                    exit;  
                     
                     break;
                 case '5':
