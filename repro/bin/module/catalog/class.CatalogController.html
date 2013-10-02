@@ -1212,14 +1212,9 @@ class CatalogController extends ReproController
                     }
                     $array = array(
                         'propertie_id' => $propertie_id,
-                        'value_content' => array($site['LangId'] => $value),
+                        'value_content' => serialize(array($site['LangId'] => $value)),
                         'object_id' => $object_id
                     );
-                    
-                    var_dump($site);
-                    var_dump($array);
-                    exit;
-                                        
                     break;
                 case '5':
                     //image
