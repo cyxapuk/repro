@@ -1226,9 +1226,6 @@ class CatalogController extends ReproController
                         $values = array();
                     }
                     
-                    array_debug($values);
-                    exit;                   
-                    
             		if ( get_magic_quotes_gpc() )
                     {
                         $value = htmlspecialchars( stripslashes((string)$value) );
@@ -1239,11 +1236,11 @@ class CatalogController extends ReproController
                     }
                     $array = array(
                         'propertie_id' => $propertie_id,
-                        'value_content' => serialize(array($site['LangId'] => $value)),
+                        'value_content' => serialize($values[$site['LangId']] = $value),
                         'object_id' => $object_id
                     );
                     
-                    array_debug($values);
+                    array_debug($array);
                     exit;
                     
                     break;
