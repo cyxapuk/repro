@@ -1217,6 +1217,18 @@ class CatalogController extends ReproController
                 
                     $values = $this->model->GetObjectPropertieValue($propertie['propertie_id'], $object_id);
                     
+                    if(!empty($values))
+                    {
+                        $values = unserialize($values);
+                    }
+                    else
+                    {
+                        $values = array();
+                    }
+                    
+                    array_debug($values);
+                    exit;                   
+                    
             		if ( get_magic_quotes_gpc() )
                     {
                         $value = htmlspecialchars( stripslashes((string)$value) );
