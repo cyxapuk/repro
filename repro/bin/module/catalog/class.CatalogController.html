@@ -1212,7 +1212,7 @@ class CatalogController extends ReproController
                     }
                     $array = array(
                         'propertie_id' => $propertie_id,
-                        'value_content' => $value,
+                        'value_content' => array($site['LangId'] => $value),
                         'object_id' => $object_id
                     );
                     
