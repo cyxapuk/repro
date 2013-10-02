@@ -465,6 +465,9 @@ class CatalogController extends ReproController
         
         if(!empty($propertielist))
         {
+            array_debug($propertielist);
+            exit;
+            
             foreach($propertielist as $key=>$propertie)
             {
                 $propertielist[$key]['propertie_value'] = $this->model->GetObjectPropertieValue($propertie['propertie_id'],$this->object_id);
