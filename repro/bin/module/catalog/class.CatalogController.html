@@ -1214,6 +1214,8 @@ class CatalogController extends ReproController
                 case '1':   //text
                 case '2':   //tetxarea                
                 case '4':   //wysiwyg
+                
+                    $values = $this->model->GetObjectPropertieValue($propertie['propertie_id'], $object_id);
                     
             		if ( get_magic_quotes_gpc() )
                     {
@@ -1229,7 +1231,7 @@ class CatalogController extends ReproController
                         'object_id' => $object_id
                     );
                     
-                    array_debug($propertie);
+                    array_debug($values);
                     exit;
                     
                     break;
