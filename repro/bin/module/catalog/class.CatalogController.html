@@ -1196,8 +1196,10 @@ class CatalogController extends ReproController
             
             switch($propertie['type_id'])
             {
-                case '4':
-                    //wysiwyg
+                case '1':   //text
+                case '2':   //tetxarea                
+                case '4':   //wysiwyg
+                    
             		if ( get_magic_quotes_gpc() )
                     {
                         $value = htmlspecialchars( stripslashes((string)$value) );
@@ -1210,7 +1212,11 @@ class CatalogController extends ReproController
                         'propertie_id' => $propertie_id,
                         'value_content' => $value,
                         'object_id' => $object_id
-                    );                    
+                    );
+                    
+                    var_dump($array);
+                    exit;
+                                        
                     break;
                 case '5':
                     //image
