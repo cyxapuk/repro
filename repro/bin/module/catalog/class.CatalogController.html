@@ -874,6 +874,9 @@ class CatalogController extends ReproController
             'object'=>serialize(self::$CatalogObjectIndex[$catalog_id][$object_id]),
         );
         
+        var_dump($index);
+        exit;
+        
         $index = array_merge($index, $params);
         
         $this->model->Delete(MYSQL_PROJECT . ".module_catalog_object_index"," where catalog_id = '" . $catalog_id . "' AND category_id = '" . $category_id . "' AND object_id='" . $object_id . "'");
@@ -1311,7 +1314,7 @@ class CatalogController extends ReproController
             
             $propertie['value_content'] = (!empty($value))  ?   $value  :   $this->model->GetObjectPropertieValue($propertie_id, $object_id);
             
-            #self::addObjectIndex($this->catalog_id, $object_id, $propertie_id, $propertie);            
+            self::addObjectIndex($this->catalog_id, $object_id, $propertie_id, $propertie);            
             
         }
     }    
