@@ -874,7 +874,7 @@ class CatalogController extends ReproController
             'object'=>serialize(self::$CatalogObjectIndex[$catalog_id][$object_id]),
         );
         
-        var_dump($index);
+        array_debug($index);
         exit;
         
         $index = array_merge($index, $params);
