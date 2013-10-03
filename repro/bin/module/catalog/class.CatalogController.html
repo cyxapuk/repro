@@ -1342,7 +1342,7 @@ class CatalogController extends ReproController
                 case '2':   //tetxarea                
                 case '4':   //wysiwyg
                 
-                    #$values = $this->model->GetCategoryPropertieValue($propertie['propertie_id']);
+                    $values = $this->model->GetCategoryPropertieValue($propertie['propertie_id']);
                     
                     if(!empty($values))
                     {
