@@ -122,7 +122,7 @@ class CatalogController extends ReproController
         echo $catalog_id . "\n";
         echo $object_id . "\n";
         echo $propertie_id . "\n";
-        echo $value . "\n"; 
+        array_debug($value); 
         
         self::$CatalogObjectIndex[$catalog_id][$object_id][$propertie_id] = $value;
         
