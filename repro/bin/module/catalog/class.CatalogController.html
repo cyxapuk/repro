@@ -119,6 +119,9 @@ class CatalogController extends ReproController
             return false;
         }
         
+        echo ">" . $value;
+        exit;
+        
         self::$CatalogObjectIndex[$catalog_id][$object_id][$propertie_id] = $value;
         
         return true;
