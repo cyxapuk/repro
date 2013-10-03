@@ -119,11 +119,6 @@ class CatalogController extends ReproController
             return false;
         }
         
-        echo $catalog_id . "\n";
-        echo $object_id . "\n";
-        echo $propertie_id . "\n";
-        array_debug($value); 
-        
         self::$CatalogObjectIndex[$catalog_id][$object_id][$propertie_id] = $value;
         
         return true;
@@ -1348,6 +1343,7 @@ class CatalogController extends ReproController
         {
             $array = array();
             $value = (!empty($propertiefields[$propertie_id]))  ?   $propertiefields[$propertie_id] :   null;
+            $values = array();
             
             switch($propertie['type_id'])
             {
@@ -1431,7 +1427,14 @@ class CatalogController extends ReproController
                 $this->model->Insert($array,MYSQL_PROJECT . ".module_catalog_category_propertie_value");                
             }
             
-            $propertie['value_content'] = (!empty($value))  ?   $value  :   $this->model->GetCategoryPropertieValue($propertie_id);
+            if(!empty($values))
+            {
+                $propertie['value_content'] = (!empty($values))  ?   $values  :   $this->model->GetCategoryPropertieValue($propertie_id);   
+            }
+            else
+            {
+                $propertie['value_content'] = (!empty($value))  ?   $value  :   $this->model->GetCategoryPropertieValue($propertie_id);                    
+            }
             
             self::addCategoryIndex($this->catalog_id, $this->category_id, $propertie_id, $propertie);
             
