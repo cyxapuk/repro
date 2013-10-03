@@ -301,6 +301,9 @@ class CatalogController extends ReproController
     
     public function displayCategoryForm($target="")
     {        
+        
+        $site = $this->model->getSite();
+                
         $_propertie_id    = $this->clearDigit( $this->gvar('_propertie_id') );
         
         if(!empty($_propertie_id))
@@ -375,7 +378,18 @@ class CatalogController extends ReproController
         {
             foreach($propertielist as $key=>$propertie)
             {
-                $propertielist[$key]['propertie_value'] = $this->model->GetCategoryPropertieValue($propertie['propertie_id']);
+                switch($propertie['type_id'])
+                {
+                    case '1':   //text
+                    case '2':   //tetxarea                
+                    case '4':   //wysiwyg
+                        $values = unserialize($this->model->GetCategoryPropertieValue($propertie['propertie_id']));
+                        $propertielist[$key]['propertie_value'] = (!empty($values[$site['LangId']]))    ?   $values[$site['LangId']]    :   "";
+                        break;
+                    default:                
+                        $propertielist[$key]['propertie_value'] = $this->model->GetCategoryPropertieValue($propertie['propertie_id']);
+                        break;
+                }
             }
         }
         
@@ -1308,6 +1322,8 @@ class CatalogController extends ReproController
     {
         global $errors;
         
+        $site = $this->model->getSite();
+        
         if(empty($propertielist))
         {
             return false;
@@ -1322,8 +1338,21 @@ class CatalogController extends ReproController
             
             switch($propertie['type_id'])
             {
-                case '4':
-                    //wysiwyg
+                case '1':   //text
+                case '2':   //tetxarea                
+                case '4':   //wysiwyg
+                
+                    $values = $this->model->GetObjectPropertieValue($propertie['propertie_id'], $object_id);
+                    
+                    if(!empty($values))
+                    {
+                        $values = unserialize($values);
+                    }
+                    else
+                    {
+                        $values = array();
+                    }
+                    
             		if ( get_magic_quotes_gpc() )
                     {
                         $value = htmlspecialchars( stripslashes((string)$value) );
@@ -1332,11 +1361,16 @@ class CatalogController extends ReproController
                     {
                         $value = htmlspecialchars( (string)$value );                        
                     }
+                    
+                    $values[$site['LangId']] = $value;
+                    
                     $array = array(
                         'propertie_id' => $propertie_id,
-                        'value_content' => $value
-                    );                    
-                    break;
+                        'value_content' => serialize($values),
+                        'object_id' => $object_id
+                    );
+                    
+                    break;                
                 case '5':
                     //image
                     if($this->isFileUploaded($propertie_id))
