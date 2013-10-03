@@ -119,6 +119,11 @@ class CatalogController extends ReproController
             return false;
         }
         
+        echo $catalog_id . "\n";
+        echo $object_id . "\n";
+        echo $propertie_id . "\n";
+        echo $value . "\n"; 
+        
         self::$CatalogObjectIndex[$catalog_id][$object_id][$propertie_id] = $value;
         
         return true;
@@ -873,9 +878,6 @@ class CatalogController extends ReproController
             'catalog_id'=>$catalog_id,
             'object'=>serialize(self::$CatalogObjectIndex[$catalog_id][$object_id]),
         );
-        
-        array_debug($index);
-        exit;
         
         $index = array_merge($index, $params);
         
