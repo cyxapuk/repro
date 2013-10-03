@@ -304,7 +304,7 @@ class CatalogController extends ReproController
         
         $site = $this->model->getSite();
                 
-        $_propertie_id    = $this->clearDigit( $this->gvar('_propertie_id') );
+        $_propertie_id    = $this->clearDigit( $this->gvar('_propertie_id') );                
         
         if(!empty($_propertie_id))
         {
@@ -1322,7 +1322,7 @@ class CatalogController extends ReproController
     {
         global $errors;
         
-        $site = $this->model->getSite();
+        $site = $this->model->getSite();                
         
         if(empty($propertielist))
         {
@@ -1342,7 +1342,7 @@ class CatalogController extends ReproController
                 case '2':   //tetxarea                
                 case '4':   //wysiwyg
                 
-                    $values = $this->model->GetCategoryPropertieValue($propertie['propertie_id']);
+                    #$values = $this->model->GetCategoryPropertieValue($propertie['propertie_id']);
                     
                     if(!empty($values))
                     {
