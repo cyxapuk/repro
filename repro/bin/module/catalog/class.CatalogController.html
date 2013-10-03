@@ -1226,7 +1226,8 @@ class CatalogController extends ReproController
         foreach($propertielist as $propertie_id => $propertie)
         {
             $array = array();
-            $value = (!empty($propertiefields[$propertie_id]))  ?   $propertiefields[$propertie_id] :   null;
+            $values = array();
+            $value = (!empty($propertiefields[$propertie_id]))  ?   $propertiefields[$propertie_id] :   null;            
             
             switch($propertie['type_id'])
             {
@@ -1314,7 +1315,14 @@ class CatalogController extends ReproController
                 $this->model->Insert($array,MYSQL_PROJECT . ".module_catalog_object_propertie_value");                
             }
             
-            $propertie['value_content'] = (!empty($value))  ?   $value  :   $this->model->GetObjectPropertieValue($propertie_id, $object_id);
+            if(!empty($values))
+            {
+                $propertie['value_content'] = (!empty($values))  ?   $values  :   $this->model->GetObjectPropertieValue($propertie_id, $object_id);
+            }
+            else
+            {
+                $propertie['value_content'] = (!empty($value))  ?   $value  :   $this->model->GetObjectPropertieValue($propertie_id, $object_id);   
+            }
             
             self::addObjectIndex($this->catalog_id, $object_id, $propertie_id, $propertie);            
             
