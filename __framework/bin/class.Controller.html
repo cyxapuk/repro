@@ -472,12 +472,22 @@ class Controller
     
     public function getListReplaceIndex($array = array(), $index = false)
     {
-        if(empty($array) || empty($index))
+        if(empty($array))
         {
             return $array;
         }
         
-        $temp = array();
+        $temp = array();        
+        
+        if(empty($index))
+        {
+            foreach($array as $key => $a)
+            {
+                $temp[$key] = $a;
+            }
+            
+            return $temp;            
+        }
         
         foreach($array as $a)
         {
