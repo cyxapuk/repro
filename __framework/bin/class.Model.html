@@ -26,13 +26,13 @@ class Model
     
     protected function SessionSave($session_id)
     {
-        $sql = "INSERT INTO " . MYSQL_PROJECT . ".system_session SET session_id='".mysql_escape_string($session_id)."', user_id='0', session_start=now(),session_last=now()";
+        $sql = "INSERT INTO " . MYSQL_PROJECT . ".system_session SET session_id='".mysql_real_escape_string($session_id)."', user_id='0', session_start=now(),session_last=now()";
         $this->dbconn->Execute($sql);        
     }    
 	
     protected function SessionExists($session_id)
     {
-        $sql = "SELECT session_id FROM " . MYSQL_PROJECT . ".system_session WHERE session_id='".mysql_escape_string($session_id)."'";
+        $sql = "SELECT session_id FROM " . MYSQL_PROJECT . ".system_session WHERE session_id='".mysql_real_escape_string($session_id)."'";
         return $this->dbconn->GetOne($sql);
     }
     
@@ -40,12 +40,12 @@ class Model
     {
         if(!empty($user_id))
         {
-            $sql = "UPDATE " . MYSQL_PROJECT . ".system_session SET session_last=now(),user_id='".intval($user_id)."' WHERE session_id='".mysql_escape_string($session_id)."'";
+            $sql = "UPDATE " . MYSQL_PROJECT . ".system_session SET session_last=now(),user_id='".intval($user_id)."' WHERE session_id='".mysql_real_escape_string($session_id)."'";
             $this->dbconn->Execute($sql);            
         }
         else
         {
-            $sql = "UPDATE " . MYSQL_PROJECT . ".system_session SET session_last=now() WHERE session_id='".mysql_escape_string($session_id)."'";            
+            $sql = "UPDATE " . MYSQL_PROJECT . ".system_session SET session_last=now() WHERE session_id='".mysql_real_escape_string($session_id)."'";            
             $this->dbconn->Execute($sql);            
         }
 
@@ -53,14 +53,14 @@ class Model
     
     protected function SessionDelete($session_id)
     {
-        $sql = "DELETE FROM " . MYSQL_PROJECT . ".system_session WHERE session_id='".mysql_escape_string($session_id)."'";
+        $sql = "DELETE FROM " . MYSQL_PROJECT . ".system_session WHERE session_id='".mysql_real_escape_string($session_id)."'";
         $this->dbconn->Execute($sql);        
     }
     
     
     public function GetSessionById($session_id)
     {
-        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".system_session WHERE session_id='".mysql_escape_string($session_id)."'";
+        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".system_session WHERE session_id='".mysql_real_escape_string($session_id)."'";
         $this->dbconn->Execute($sql);        
     }
 
@@ -71,7 +71,7 @@ class Model
     {
         if(!empty($Status) && !empty($Like))
         {
-            return $this->dbconn->GetAll("SELECT * from " . MYSQL_PROJECT . ".system_user WHERE Status = '" . intval($Status) . "' AND Login LIKE '%" . mysql_escape_string($Like) . "%'");
+            return $this->dbconn->GetAll("SELECT * from " . MYSQL_PROJECT . ".system_user WHERE Status = '" . intval($Status) . "' AND Login LIKE '%" . mysql_real_escape_string($Like) . "%'");
         }
         elseif(!empty($Status))
         {
@@ -79,7 +79,7 @@ class Model
         }
         if(!empty($Like))
         {
-            return $this->dbconn->GetAll("SELECT * from " . MYSQL_PROJECT . ".system_user WHERE Login LIKE '%" . mysql_escape_string($Like) . "%'");
+            return $this->dbconn->GetAll("SELECT * from " . MYSQL_PROJECT . ".system_user WHERE Login LIKE '%" . mysql_real_escape_string($Like) . "%'");
         }
         else
         {
@@ -98,11 +98,11 @@ class Model
     {        
         if($status)
         {
-            $sql = "SELECT Id FROM " . MYSQL_PROJECT . ".system_user WHERE Login='".mysql_escape_string($login)."' AND Password='".mysql_escape_string($password)."' AND status = 1";            
+            $sql = "SELECT Id FROM " . MYSQL_PROJECT . ".system_user WHERE Login='".mysql_real_escape_string($login)."' AND Password='".mysql_real_escape_string($password)."' AND status = 1";            
         }
         else
         {
-            $sql = "SELECT Id FROM " . MYSQL_PROJECT . ".system_user WHERE Login='".mysql_escape_string($login)."' AND Password='".mysql_escape_string($password)."'";            
+            $sql = "SELECT Id FROM " . MYSQL_PROJECT . ".system_user WHERE Login='".mysql_real_escape_string($login)."' AND Password='".mysql_real_escape_string($password)."'";            
         }        
         
         $res = $this->dbconn->GetOne($sql);
@@ -111,14 +111,14 @@ class Model
     
     protected function GetUserBySession($session_id)
     {
-        $sql = "SELECT user_id FROM " . MYSQL_PROJECT . ".system_session WHERE session_id='".mysql_escape_string($session_id)."'";
+        $sql = "SELECT user_id FROM " . MYSQL_PROJECT . ".system_session WHERE session_id='".mysql_real_escape_string($session_id)."'";
         $res = $this->dbconn->GetOne($sql);
         return !empty($res['user_id'])?$res['user_id']:0;        
     }
     
     protected function GetUserByLogin($login)
     {
-        $sql = "SELECT Id FROM " . MYSQL_PROJECT . ".system_user WHERE Login='".mysql_escape_string($login)."'";
+        $sql = "SELECT Id FROM " . MYSQL_PROJECT . ".system_user WHERE Login='".mysql_real_escape_string($login)."'";
         $res = $this->dbconn->GetOne($sql);
         return !empty($res['Id'])?$res['Id']:0;        
     }    
@@ -131,7 +131,7 @@ class Model
     
     protected function AddNewUser($login,$password)
     {
-        $sql = "INSERT INTO " . MYSQL_PROJECT . ".system_user SET Login='".mysql_escape_string($login)."', Password='".mysql_escape_string($password)."'";        
+        $sql = "INSERT INTO " . MYSQL_PROJECT . ".system_user SET Login='".mysql_real_escape_string($login)."', Password='".mysql_real_escape_string($password)."'";        
         $this->dbconn->Execute($sql);        
         return $this->dbconn->getLastInsertId();         
         
@@ -185,7 +185,7 @@ class Model
         $fields = array();
         foreach($array as $_k=>$_v)
         {
-            $fields[] = $_k."='".mysql_escape_string($_v)."'";
+            $fields[] = $_k."='".mysql_real_escape_string($_v)."'";
         }
         
         $sql = "INSERT INTO ".$tablename." SET ".join(",",$fields);
@@ -205,7 +205,7 @@ class Model
         $fields = array();
         foreach($array as $_k=>$_v)
         {
-            $fields[] = $_k."='".mysql_escape_string($_v)."'";
+            $fields[] = $_k."='".mysql_real_escape_string($_v)."'";
         }
         
         $sql = "UPDATE ".$tablename." SET ".join(",",$fields).$exp;
@@ -229,7 +229,7 @@ class Model
     {
         if(empty($field) || empty($value) || empty($tablename)) return false;
         
-        $sql = "SELECT ".$field." FROM ".$tablename." WHERE ".$field."='".mysql_escape_string($value)."'";
+        $sql = "SELECT ".$field." FROM ".$tablename." WHERE ".$field."='".mysql_real_escape_string($value)."'";
         $res = $this->dbconn->GetOne($sql);
         return !empty($res[$field])?$res[$field]:false;
     }           
