@@ -26,12 +26,6 @@ class ReproModel extends Model
         return $this->dbconn->GetOne($sql);
     }    
     
-    public function GetUserList()
-    {
-        $sql = "SELECT * FROM " . MYSQL_PROJECT . ".system_user WHERE Superadmin = 0 ORDER by Id";
-        return $this->dbconn->GetAll($sql);        
-    }    
-    
     public function getPage($Id = 0)
     {
         if(empty($Id))  return false;

@@ -1,7 +1,17 @@
 <?php
 
-/* Подключаем глобальный конфиг */
-include_once(dirname(dirname(dirname(__FILE__))) . '/__config/config.html');
+/* при разработке на локальном сервере */
+if($_SERVER['HTTP_HOST'] == 'reproadmin')
+{
+    /* Подключаем глобальный конфиг */
+    include_once(dirname(dirname(dirname(dirname(__FILE__)))) . '/__config/config.html');    
+}
+/* при разработке на хостинге */
+else
+{
+    /* Подключаем глобальный конфиг */
+    include_once(dirname(dirname(dirname(__FILE__))) . '/__config/config.html');    
+}
 
 /* Админка */
 include_once(dirname(dirname(__FILE__)) . '/config/config.html');

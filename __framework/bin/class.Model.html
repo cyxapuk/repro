@@ -83,7 +83,7 @@ class Model
         }
         else
         {
-            return $this->dbconn->GetAll("SELECT * from " . MYSQL_PROJECT . ".system_user");            
+            return $this->dbconn->GetAll("SELECT * from " . MYSQL_PROJECT . ".system_user WHERE Superadmin = 0 ORDER by Id");            
         }        
     }    
     
